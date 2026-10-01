@@ -25,6 +25,11 @@ exam, chapter exercises and their solutions). Problems in these courses look lik
   course materials or from an earlier generated problem in `study/generated/`.
 - Pick numbers that work out cleanly (whole-dollar rates, sensible totals), at the same difficulty and
   length as the course's own problems.
+- Keep it as direct as a real exam problem. Default shape: a short setup, one block of data, and two
+  to four required items that each ask for one number or one journal entry (for example "What is the
+  balance of gross accounts receivable?"). No "ignore part 2" branches, what-if variations, embedded
+  side transactions or essay parts unless the user asks for a harder or longer problem. Do not make it
+  longer or more layered than the problems on the course's own practice exam.
 - Lay out the data in Markdown tables.
 
 ## Verify before showing anything
