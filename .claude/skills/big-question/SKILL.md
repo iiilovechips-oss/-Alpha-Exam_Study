@@ -48,3 +48,17 @@ also read the homework, quiz, case and mini-project pages and files for the chap
 likely exam material, so weight them more heavily. In BADM 210 the mini-projects are tested on exams.
 Use them only to decide what to ask and at what difficulty: write new questions, never hand back a
 graded assignment's own questions or answers.
+
+## Material that lives outside Canvas
+Some homework is on sites this tool cannot reach, so it is missing from `materials/` unless the user
+adds it:
+- ACCY 301: McGraw-Hill Connect (homework, quizzes, SmartBook)
+- BADM 210: PrairieLearn (homework)
+- ACCY 302: the online homework quizzes inside Canvas (quiz questions are not collected)
+
+When the user asks for a study guide, quiz, big question or exam prep for one of these courses, say once,
+briefly, that those homework questions are not included and that adding them would make the result
+closer to the real exam. Tell them how: save or print the homework pages (PDF or screenshots) into
+`materials/<course>/Homework/`, or paste the questions into the chat. Files in that folder are picked up
+by the export, the study packs and these skills. Then carry on with what is available; do not block on it
+and do not repeat the reminder later in the same conversation.

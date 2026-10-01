@@ -100,3 +100,34 @@ def test_calendar_has_timed_exams_and_all_day_deadlines():
     assert "SUMMARY:EXAM: ACCY 302 Exam 2" in text and "DTSTART:20261027T190000" in text
     assert "LOCATION:CIF 3039" in text and "DTSTART;VALUE=DATE:20261113" in text
     assert text.count("BEGIN:VEVENT") == 2
+
+
+def test_excel_becomes_markdown_with_values_and_formulas(tmp_path):
+    from openpyxl import Workbook
+    from canvas_sync.convert import render
+    book = Workbook()
+    sheet = book.active
+    sheet.title = "Costs"
+    sheet.append(["Item", "Cost"])
+    sheet.append(["Labor", 29000])
+    sheet.append(["Materials", 19000])
+    sheet["B4"] = "=SUM(B2:B3)"
+    book.save(tmp_path / "data.xlsx")
+    assert render(tmp_path / "data.xlsx", tmp_path, "data.xlsx") == ["data (Excel).md"]
+    text = (tmp_path / "data (Excel).md").read_text()
+    assert "## Sheet: Costs" in text and "| Labor | 29000 |" in text and "- B4: `=SUM(B2:B3)`" in text
+
+
+def test_big_pdf_is_split_into_parts(tmp_path, monkeypatch):
+    from pypdf import PdfReader, PdfWriter
+    from canvas_sync import convert
+    writer = PdfWriter()
+    for _ in range(6):
+        writer.add_blank_page(width=200, height=200)
+    with open(tmp_path / "deck.pdf", "wb") as fh:
+        writer.write(fh)
+    size = (tmp_path / "deck.pdf").stat().st_size
+    monkeypatch.setattr(convert, "PART_MB", size * 0.6 / 1_000_000)  # force a split
+    names = convert.render(tmp_path / "deck.pdf", tmp_path, "deck.pdf")
+    assert len(names) >= 2 and names[0].startswith("deck (part 1 of ")
+    assert sum(len(PdfReader(tmp_path / n).pages) for n in names) == 6

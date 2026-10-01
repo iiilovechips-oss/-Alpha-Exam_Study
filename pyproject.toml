@@ -5,8 +5,11 @@ description = "Pull class materials from Canvas into an organized local folder f
 requires-python = ">=3.11"
 dependencies = [
     "markdownify>=1.2.3",
+    "openpyxl>=3.1.5",
     "playwright>=1.45",
+    "pypdf>=6.19.0",
     "python-dotenv>=1.0",
+    "python-pptx>=1.0.2",
 ]
 
 [project.scripts]

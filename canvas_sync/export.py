@@ -6,10 +6,14 @@ import re
 import shutil
 from pathlib import Path
 
+from canvas_sync.convert import render
+
 ROOT = Path(__file__).resolve().parent.parent
 MATERIALS = ROOT / "materials"
 EXPORT = ROOT / "notebooklm"
 UPLOADED = ROOT / ".uploaded.json"  # what the user has confirmed is in NotebookLM
+CACHE = ROOT / ".export_cache"  # converted and split files, reused until the source changes
+MANIFEST = EXPORT / ".manifest.json"  # the current export: {course: {file name: source digest}}
 SOURCE_LIMIT = 50  # NotebookLM free tier: sources per notebook
 
 # Edit these lists to change what gets exported. All match the file name, ignoring case.
@@ -65,7 +69,7 @@ def export() -> None:
     uploaded = json.loads(UPLOADED.read_text()) if UPLOADED.exists() else {}
     if EXPORT.exists():
         shutil.rmtree(EXPORT)  # derived copy; rebuilt from materials/ every run
-    report = ["# NotebookLM export", ""]
+    report, manifest = ["# NotebookLM export", ""], {}
     for course_dir in sorted(p for p in MATERIALS.iterdir() if p.is_dir()):
         course = course_dir.name
         kept, dropped = choose(course_dir)
@@ -75,21 +79,25 @@ def export() -> None:
         for f in kept:
             name = f.name if f.name not in current else f"{f.parent.name} - {f.name}"
             name = " ".join(name.split())  # no odd whitespace (non-breaking spaces) in upload names
-            shutil.copy2(f, out / name)
-            current[name] = digest(f)
-            if name not in before:
-                add.append(name)
-            elif before[name] != current[name]:
-                replace.append(name)
+            source = digest(f)
+            # Excel becomes Markdown and oversized files become several parts, so one source
+            # file can produce more than one upload.
+            for made in render(f, out, name, CACHE / f"{source}-{Path(name).stem[:40]}"):
+                current[made] = source
+                if made not in before:
+                    add.append(made)
+                elif before[made] != source:
+                    replace.append(made)
         remove = sorted(set(before) - set(current))
         for name in add + replace:
             (EXPORT / "_new" / course).mkdir(parents=True, exist_ok=True)
             shutil.copy2(out / name, EXPORT / "_new" / course / name)
 
-        over = f"  ** over the {SOURCE_LIMIT}-source limit **" if len(kept) > SOURCE_LIMIT else ""
-        print(f"{course}: {len(kept)} files; to upload: {len(add)} new, {len(replace)} changed, "
+        manifest[course] = current
+        over = f"  ** over the {SOURCE_LIMIT}-source limit **" if len(current) > SOURCE_LIMIT else ""
+        print(f"{course}: {len(current)} files; to upload: {len(add)} new, {len(replace)} changed, "
               f"{len(remove)} to remove{over}")
-        report += [f"## {course}", f"{len(kept)} files in the notebook folder{over}", ""]
+        report += [f"## {course}", f"{len(current)} files in the notebook folder{over}", ""]
         report += [f"- [ ] ADD: {n}" for n in add]
         report += [f"- [ ] REPLACE (delete the old source, add this one): {n}" for n in replace]
         report += [f"- [ ] REMOVE from the notebook: {n}" for n in remove]
@@ -97,6 +105,7 @@ def export() -> None:
         report += [f"- {f.relative_to(course_dir)} ({why})" for f, why in dropped if f.suffix != ".md"]
         report += [f"- {sum(f.suffix == '.md' for f, _ in dropped)} Canvas page text files", ""]
     (EXPORT / "EXPORT_REPORT.md").write_text("\n".join(report) + "\n")
+    MANIFEST.write_text(json.dumps(manifest, indent=1))
     if (EXPORT / "_new").exists():
         print("\nDrag the files in notebooklm/_new/<COURSE>/ into that course's notebook, then run "
               "`canvas-sync uploaded`.\nChecklist: notebooklm/EXPORT_REPORT.md")
@@ -106,9 +115,9 @@ def export() -> None:
 
 def mark_uploaded() -> None:
     """Record the current export as being in NotebookLM, so later exports only list what changed."""
-    state = {}
-    for course_dir in sorted(p for p in EXPORT.iterdir() if p.is_dir() and p.name != "_new"):
-        state[course_dir.name] = {f.name: digest(f) for f in sorted(course_dir.iterdir()) if f.is_file()}
+    if not MANIFEST.exists():
+        raise SystemExit("Run `canvas-sync export` first.")
+    state = json.loads(MANIFEST.read_text())
     UPLOADED.write_text(json.dumps(state, indent=1))
     if (EXPORT / "_new").exists():
         shutil.rmtree(EXPORT / "_new")

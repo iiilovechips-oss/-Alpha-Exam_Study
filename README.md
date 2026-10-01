@@ -23,6 +23,8 @@ Canvas ──► sync ──► materials/<COURSE>/<week or chapter>/   (everyth
 - **export** filters that down to study material: lecture slides, practice problems and solutions,
   exam reviews, study guides and readings. Case assignments, graded work, lab files and duplicate
   versions of the same deck are left out, which keeps each course under NotebookLM's 50-source limit.
+  Excel workbooks, which NotebookLM does not accept, are converted to Markdown (cell values as tables
+  plus the formulas behind them), and PDFs or slide decks over 8 MB are split into parts.
 - Every run writes a checklist (`reports/` and `notebooklm/EXPORT_REPORT.md`) of what is new, what
   changed, what was skipped and what needs a manual look. The last step, adding files to a notebook,
   is deliberately left to a person.

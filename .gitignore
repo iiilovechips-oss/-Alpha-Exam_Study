@@ -9,3 +9,4 @@ notebooklm/
 .uploaded.json
 study/
 study.toml
+.export_cache/
