@@ -1,0 +1,22 @@
+[project]
+name = "canvas-sync"
+version = "0.1.0"
+description = "Pull class materials from Canvas into an organized local folder for NotebookLM and Claude."
+requires-python = ">=3.11"
+dependencies = [
+    "markdownify>=1.2.3",
+    "playwright>=1.45",
+    "python-dotenv>=1.0",
+]
+
+[project.scripts]
+canvas-sync = "canvas_sync.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]

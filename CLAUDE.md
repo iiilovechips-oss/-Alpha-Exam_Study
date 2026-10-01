@@ -1,0 +1,20 @@
+# canvas-sync
+
+Pulls class files from Canvas into `materials/<COURSE>/<module>/`. Weekly command: `uv run canvas-sync update` (sync + export);
+each run writes a checklist to `reports/`. Videos are skipped (listed in the report, not downloaded). `state.db` tracks what has been downloaded.
+
+UIUC blocks self-service Canvas tokens, so auth is a browser login saved in `.session.json`
+(`uv run canvas-sync login`). When it expires, a sync opens Chrome to log in again; if nobody does,
+it writes an ACTION NEEDED reminder to the report instead of failing.
+
+`uv run canvas-sync export` rebuilds `notebooklm/<COURSE>/`: a filtered copy (slides, practice, study guides,
+readings; no cases, graded work or page text) for uploading to NotebookLM. Filter rules are at the top of
+`canvas_sync/export.py`. `notebooklm/_new/` holds only files not yet uploaded; `canvas-sync uploaded` marks them done.
+Tests: `uv run pytest`.
+
+## Answering questions about class material
+- Read `materials/COURSE_GUIDE.md` first: it has each course's grading weights and key dates. The user uses this project for studying only (explanations, practice questions, exam review).
+- Read the original files under `materials/` (pptx, xlsx, pdf, docx) before answering; do not answer from memory.
+- Cite the course, file, and slide/page/sheet each claim comes from.
+- If the materials do not cover something, say so rather than filling in from general knowledge.
+- Never print or commit the contents of `.env` or `.session.json`.
