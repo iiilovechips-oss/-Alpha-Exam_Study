@@ -7,6 +7,15 @@ description: Build a slide-by-slide study page for a lecture deck, with each sli
 
 Arguments: a course and a deck (chapter, week or file name). Optionally a slide range.
 
+## Check first: is this deck still going to be tested?
+Explaining a deck takes real effort, so do not spend it on material that is finished. Before starting, look
+at `study.toml` and today's date:
+- If every exam that covers the deck is already in the past, and no later exam is cumulative, do not explain
+  it. Tell the user it has already been tested and ask if they still want it.
+- If the user asks for "all the slides" of a course, only do decks covered by an upcoming exam, and list the
+  ones you skipped and why.
+- Do one deck at a time and confirm before starting the next.
+
 ## Steps
 1. Run `uv run canvas-sync explain "<part of the deck's path>"`. It renders every slide to an image under
    `study/explained/<course>/<deck>/` and writes `slides.json` with each slide's text. It only handles PDF
