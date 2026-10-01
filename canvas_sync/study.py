@@ -78,12 +78,11 @@ def ics(exams: list[dict], deadlines: list[dict]) -> str:
 
 
 def calendar() -> None:
-    exams, deadlines = load()
+    exams, _ = load()  # exams only; deadlines stay in the digest
     STUDY.mkdir(exist_ok=True)
     out = STUDY / "calendar.ics"
-    out.write_text(ics(exams, deadlines))
-    print(f"{len(exams)} exams and {len(deadlines)} deadlines written to {out.relative_to(ROOT)}. "
-          "Open the file to add them to your calendar.")
+    out.write_text(ics(exams, []))
+    print(f"{len(exams)} exams written to {out.relative_to(ROOT)}. Open the file to add them to your calendar.")
 
 
 def digest(today: date | None = None, days: int = 14) -> list[str]:

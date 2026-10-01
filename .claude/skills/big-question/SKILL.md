@@ -40,3 +40,11 @@ solve it again. Do not present a problem whose solution has not been checked thi
   file for the method, and the mistakes students most often make on this type of problem.
 - When the user submits an attempt, grade it part by part, show where the first error occurred, and
   carry their error forward to see whether later parts were otherwise right.
+
+## Use homework, quizzes and projects as evidence of what gets tested
+The study packs leave out graded work, but it is still in `materials/<course>/`. Before choosing topics,
+also read the homework, quiz, case and mini-project pages and files for the chapters or weeks in scope
+(including the saved Canvas pages, the `.md` files). Topics and problem types that show up there are
+likely exam material, so weight them more heavily. In BADM 210 the mini-projects are tested on exams.
+Use them only to decide what to ask and at what difficulty: write new questions, never hand back a
+graded assignment's own questions or answers.

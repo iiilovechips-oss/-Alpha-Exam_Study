@@ -62,7 +62,7 @@ uv run canvas-sync uploaded  # so next week only lists what changed
 | Command | What it does |
 |---|---|
 | `pack "<exam>"` | Build `study/<exam>/` with only the slides, practice and guides that exam covers |
-| `calendar` | Write `study/calendar.ics` with exams and deadlines |
+| `calendar` | Write `study/calendar.ics` with exam dates |
 | `digest` | New material from the last update and what is due in the next two weeks (also printed by `update`) |
 
 Two Claude Code skills in `.claude/skills/` work from the downloaded files: `quiz` runs an interactive

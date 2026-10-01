@@ -32,3 +32,11 @@ copy a question from the practice materials.
 - At the end: score, the topics missed, and which files to reread for each.
 - If the user asks for a quiz "to save" or "to print", write the questions to
   `study/generated/<course> quiz <date>.md` and the answer key to a separate `... answers.md` instead.
+
+## Use homework, quizzes and projects as evidence of what gets tested
+The study packs leave out graded work, but it is still in `materials/<course>/`. Before choosing topics,
+also read the homework, quiz, case and mini-project pages and files for the chapters or weeks in scope
+(including the saved Canvas pages, the `.md` files). Topics and problem types that show up there are
+likely exam material, so weight them more heavily. In BADM 210 the mini-projects are tested on exams.
+Use them only to decide what to ask and at what difficulty: write new questions, never hand back a
+graded assignment's own questions or answers.

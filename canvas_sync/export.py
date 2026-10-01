@@ -16,7 +16,7 @@ SOURCE_LIMIT = 50  # NotebookLM free tier: sources per notebook
 ALLOWED_EXT = {".pdf", ".pptx", ".docx", ".xlsx", ".txt"}
 # Always left out: graded work, admin paperwork, per-student lab files.
 NEVER = re.compile(
-    r"netid|playbook|template|response sheet|rubric|instructions|mini-?project|secnumber|"
+    r"netid|playbook|template|response sheet|rubric|instructions|secnumber|"
     r"group assignment|extra credit|sona|research participation|student success|"
     r"^reading[ _]\d+\.\d+", re.I)  # BADM 210 weekly readings: the full textbook is included instead
 # Study material: kept even if it also looks like case work.
