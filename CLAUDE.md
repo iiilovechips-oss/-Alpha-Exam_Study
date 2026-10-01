@@ -16,6 +16,8 @@ Tests: `uv run pytest`.
 `study.toml` lists exams (with the material each one covers) and deadlines.
 - `uv run canvas-sync pack "<exam>"` builds `study/<exam>/` with just that exam's material.
 - `uv run canvas-sync calendar` writes `study/calendar.ics` (exams only); `digest` shows new material and what is due soon.
+- `uv run canvas-sync explain "<deck>"` renders a PDF deck into `study/explained/<course>/<deck>/` and builds
+  `index.html`: each slide beside a plain-language explanation from `notes.json` (written by the `explain-slides` skill).
 - Skills: `quiz` (interactive practice quiz) and `big-question` (new long multi-part problem with a
   verified solution). Generated problems go in `study/generated/`.
 

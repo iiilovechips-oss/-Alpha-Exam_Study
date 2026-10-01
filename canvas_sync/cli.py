@@ -480,6 +480,8 @@ def main() -> None:
     sub.add_parser("uploaded", help="mark the current export as uploaded to NotebookLM")
     pack_parser = sub.add_parser("pack", help="build study/<exam>/ with just the material one exam covers")
     pack_parser.add_argument("exam", nargs="?", help='part of an exam name, e.g. "302 exam 2"')
+    explain_parser = sub.add_parser("explain", help="build a slide-by-slide study page for one PDF deck")
+    explain_parser.add_argument("deck", help='part of the path of the deck, e.g. "475/Files/Week 5/Chapter 2"')
     sub.add_parser("calendar", help="write study/calendar.ics with exams and deadlines")
     sub.add_parser("digest", help="show new material and what is due in the next two weeks")
     args = parser.parse_args()
@@ -491,6 +493,9 @@ def main() -> None:
         return mark_uploaded()
     if args.command == "pack":
         return study.pack(args.exam)
+    if args.command == "explain":
+        from canvas_sync.explain import explain
+        return explain(args.deck)
     if args.command == "calendar":
         return study.calendar()
     if args.command == "digest":
