@@ -65,7 +65,7 @@ def ics(exams: list[dict], deadlines: list[dict]) -> str:
         lines += ["BEGIN:VEVENT", f"UID:{uid}@canvas-sync", f"DTSTAMP:{day:%Y%m%d}T000000Z"]
         if item.get("time"):
             start = datetime.fromisoformat(f"{item['date']}T{item['time']}")
-            lines += [f"DTSTART:{start:%Y%m%dT%H%M%S}", f"DTEND:{start + timedelta(hours=1, minutes=30):%Y%m%dT%H%M%S}"]
+            lines += [f"DTSTART:{start:%Y%m%dT%H%M%S}", f"DTEND:{start + timedelta(hours=item.get('hours', 1.5)):%Y%m%dT%H%M%S}"]
         else:
             lines += [f"DTSTART;VALUE=DATE:{day:%Y%m%d}", f"DTEND;VALUE=DATE:{day + timedelta(days=1):%Y%m%d}"]
         title = f"{label(item)}" if kind == "Due" else f"EXAM: {label(item)}"

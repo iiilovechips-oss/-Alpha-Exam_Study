@@ -6,6 +6,7 @@ course = "ACCY 302"
 name = "Exam 2"
 date = "2026-10-27"
 time = "19:00"            # optional
+hours = 1.5               # optional length, default 1.5
 where = "CIF 3039"        # optional
 covers = ["^Day 1[2-8] "]
 
