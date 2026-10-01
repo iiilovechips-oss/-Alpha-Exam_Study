@@ -477,16 +477,29 @@ def main() -> None:
     sub.add_parser("export", help="build notebooklm/: a filtered, study-only copy for NotebookLM")
     sub.add_parser("update", help="sync, then export: the one command to run each week").set_defaults(func=sync)
     sub.add_parser("uploaded", help="mark the current export as uploaded to NotebookLM")
+    pack_parser = sub.add_parser("pack", help="build study/<exam>/ with just the material one exam covers")
+    pack_parser.add_argument("exam", nargs="?", help='part of an exam name, e.g. "302 exam 2"')
+    sub.add_parser("calendar", help="write study/calendar.ics with exams and deadlines")
+    sub.add_parser("digest", help="show new material and what is due in the next two weeks")
     args = parser.parse_args()
+    from canvas_sync import study
     from canvas_sync.export import export, mark_uploaded
     if args.command == "export":
         return export()
     if args.command == "uploaded":
         return mark_uploaded()
+    if args.command == "pack":
+        return study.pack(args.exam)
+    if args.command == "calendar":
+        return study.calendar()
+    if args.command == "digest":
+        return print("\n".join(study.digest()))
     with sync_playwright() as pw:
         args.func(Canvas(pw))
     if args.command == "update":
         export()
+        if study.CONFIG.exists():
+            print("\n".join(study.digest()))
 
 
 if __name__ == "__main__":

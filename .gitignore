@@ -7,3 +7,5 @@ state.db
 .session.json
 notebooklm/
 .uploaded.json
+study/
+study.toml

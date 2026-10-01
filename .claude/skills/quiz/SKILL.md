@@ -1,0 +1,34 @@
+---
+name: quiz
+description: Run a practice quiz on a course or exam from the files in materials/. Use when the user asks to be quizzed, wants practice questions, or says "/quiz ACCY 301" or "/quiz PSYC 475 exam 2".
+---
+
+# Practice quiz
+
+Arguments: a course, optionally an exam or topic, optionally a number of questions (default 10).
+
+## Scope
+1. Read `materials/COURSE_GUIDE.md` and `study.toml`.
+2. If an exam is named, limit the scope to that exam's `covers` patterns (the same files
+   `uv run canvas-sync pack "<exam>"` would collect). If a topic is named, find the files on that topic.
+   With neither, use the next upcoming exam for the course.
+3. Read the actual files in scope before writing anything. Do not write questions from memory or from
+   general knowledge of the subject; every question must be answerable from these materials.
+
+## Format
+Match how the course tests. Look at its practice exam, study guide or exam review first.
+- PSYC 475: multiple choice, four options, concept and application.
+- BADM 210: multiple choice, true/false and calculated numeric answers.
+- ACCY 301 / ACCY 302: short computational problems and short concept questions. For long multi-part
+  problems use the `big-question` skill instead.
+Weight topics the way the study guide or review session does. Use new numbers and new scenarios; never
+copy a question from the practice materials.
+
+## Running it
+- Ask one question at a time and wait for the answer.
+- After each answer: say right or wrong, give the correct answer with the reasoning, and cite the source
+  as course, file and slide or page.
+- Check every numeric answer by computing it with a short script before stating it.
+- At the end: score, the topics missed, and which files to reread for each.
+- If the user asks for a quiz "to save" or "to print", write the questions to
+  `study/generated/<course> quiz <date>.md` and the answer key to a separate `... answers.md` instead.

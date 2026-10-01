@@ -12,6 +12,13 @@ readings; no cases, graded work or page text) for uploading to NotebookLM. Filte
 `canvas_sync/export.py`. `notebooklm/_new/` holds only files not yet uploaded; `canvas-sync uploaded` marks them done.
 Tests: `uv run pytest`.
 
+## Study features
+`study.toml` lists exams (with the material each one covers) and deadlines.
+- `uv run canvas-sync pack "<exam>"` builds `study/<exam>/` with just that exam's material.
+- `uv run canvas-sync calendar` writes `study/calendar.ics`; `digest` shows new material and what is due soon.
+- Skills: `quiz` (interactive practice quiz) and `big-question` (new long multi-part problem with a
+  verified solution). Generated problems go in `study/generated/`.
+
 ## Answering questions about class material
 - Read `materials/COURSE_GUIDE.md` first: it has each course's grading weights and key dates. The user uses this project for studying only (explanations, practice questions, exam review).
 - Read the original files under `materials/` (pptx, xlsx, pdf, docx) before answering; do not answer from memory.

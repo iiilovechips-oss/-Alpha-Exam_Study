@@ -55,6 +55,20 @@ uv run canvas-sync uploaded  # so next week only lists what changed
 | `update` | `sync` then `export` |
 | `uploaded` | Record the current export as uploaded |
 
+## Study features
+
+`study.toml` (copy `study.example.toml`) lists exams, what each one covers, and deadlines.
+
+| Command | What it does |
+|---|---|
+| `pack "<exam>"` | Build `study/<exam>/` with only the slides, practice and guides that exam covers |
+| `calendar` | Write `study/calendar.ics` with exams and deadlines |
+| `digest` | New material from the last update and what is due in the next two weeks (also printed by `update`) |
+
+Two Claude Code skills in `.claude/skills/` work from the downloaded files: `quiz` runs an interactive
+practice quiz in the course's exam format, and `big-question` writes a new long multi-part problem
+modeled on the course's own practice exams, checks the solution with a script, and grades an attempt.
+
 ## Design notes
 
 - **Authentication.** Canvas normally uses a personal access token (`CANVAS_API_TOKEN`). My school

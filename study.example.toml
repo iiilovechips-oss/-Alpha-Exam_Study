@@ -1,0 +1,15 @@
+# Copy to study.toml and fill in your own exams and deadlines.
+# `covers` are regular expressions matched against a file's path inside materials/<course>/.
+
+[[exam]]
+course = "ACCY 302"
+name = "Exam 2"
+date = "2026-10-27"
+time = "19:00"            # optional
+where = "CIF 3039"        # optional
+covers = ["^Day 1[2-8] "]
+
+[[deadline]]
+course = "PSYC 475"
+name = "Assignment 2 due"
+date = "2026-11-13"

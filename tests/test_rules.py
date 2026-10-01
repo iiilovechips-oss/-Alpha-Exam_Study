@@ -80,3 +80,23 @@ def test_sharepoint_links_are_named_from_surrounding_text():
         (f"{sp}/:b:/g/personal/prof/AAA?e=1", "Chapter 6- Revenue Recognition", "Lecture Sept 9 - Pre-lecture Slide Deck"),
         (f"{sp}/:b:/g/personal/prof/BBB?e=2", "Chapter 6- Revenue Recognition", "Lecture Sept 9 - Post-lecture Slide Deck"),
     ]
+
+
+def test_study_pack_only_takes_material_the_exam_covers(tmp_path):
+    from canvas_sync.study import pack_files
+    make(tmp_path / "ACCY 302",
+         "Day 11 (Tuesday)/Midterm1 Practice Problems.docx",
+         "Day 13 (Tuesday)/Day 13 LECTURE CVP.pdf",
+         "Day 13 (Tuesday)/Day 13 CASE 4 Template.xlsx",
+         "Day 19 (Tuesday)/Day 19 LECTURE Constraints.pdf")
+    exam = {"course": "ACCY 302", "name": "Exam 2", "date": "2026-10-27", "covers": ["^Day 1[2-8] "]}
+    assert [f.name for f in pack_files(exam, tmp_path)] == ["Day 13 LECTURE CVP.pdf"]
+
+
+def test_calendar_has_timed_exams_and_all_day_deadlines():
+    from canvas_sync.study import ics
+    text = ics([{"course": "ACCY 302", "name": "Exam 2", "date": "2026-10-27", "time": "19:00", "where": "CIF 3039"}],
+               [{"course": "PSYC 475", "name": "Assignment 2 due", "date": "2026-11-13"}])
+    assert "SUMMARY:EXAM: ACCY 302 Exam 2" in text and "DTSTART:20261027T190000" in text
+    assert "LOCATION:CIF 3039" in text and "DTSTART;VALUE=DATE:20261113" in text
+    assert text.count("BEGIN:VEVENT") == 2
