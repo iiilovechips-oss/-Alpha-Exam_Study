@@ -50,6 +50,7 @@ class CanvasError(Exception):
 
 
 def safe_name(name: str) -> str:
+    name = " ".join(name.split())  # also turns non-breaking spaces into plain ones
     return re.sub(r'[\\/:*?"<>|]+', "-", name).strip(" .") or "untitled"
 
 

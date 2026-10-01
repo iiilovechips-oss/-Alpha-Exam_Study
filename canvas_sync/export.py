@@ -74,6 +74,7 @@ def export() -> None:
         before, current, add, replace = uploaded.get(course, {}), {}, [], []
         for f in kept:
             name = f.name if f.name not in current else f"{f.parent.name} - {f.name}"
+            name = " ".join(name.split())  # no odd whitespace (non-breaking spaces) in upload names
             shutil.copy2(f, out / name)
             current[name] = digest(f)
             if name not in before:
