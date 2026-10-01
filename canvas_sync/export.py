@@ -96,8 +96,11 @@ def export() -> None:
         report += [f"- {f.relative_to(course_dir)} ({why})" for f, why in dropped if f.suffix != ".md"]
         report += [f"- {sum(f.suffix == '.md' for f, _ in dropped)} Canvas page text files", ""]
     (EXPORT / "EXPORT_REPORT.md").write_text("\n".join(report) + "\n")
-    print("\nDrag the files in notebooklm/_new/<COURSE>/ into that course's notebook, then run "
-          "`canvas-sync uploaded`.\nChecklist: notebooklm/EXPORT_REPORT.md")
+    if (EXPORT / "_new").exists():
+        print("\nDrag the files in notebooklm/_new/<COURSE>/ into that course's notebook, then run "
+              "`canvas-sync uploaded`.\nChecklist: notebooklm/EXPORT_REPORT.md")
+    else:
+        print("\nNothing new to upload to NotebookLM.")
 
 
 def mark_uploaded() -> None:

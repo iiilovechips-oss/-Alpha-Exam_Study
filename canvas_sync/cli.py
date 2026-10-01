@@ -429,6 +429,16 @@ def sync(canvas: Canvas) -> None:
             listing += [f"- [{text}]({url}) (from: {source})" for source, text, url in scan.externals]
             (base / "External links.md").write_text("\n".join(listing) + "\n")
 
+        # Report each problem once, so a permanently broken link doesn't nag every week.
+        fresh = []
+        for problem in problems:
+            key = "problem:" + problem
+            if not db.execute("SELECT 1 FROM links WHERE course_id=? AND url=?", (course["id"], key)).fetchone():
+                fresh.append(problem)
+                db.execute("INSERT INTO links VALUES (?,?)", (course["id"], key))
+        db.commit()
+        problems = fresh
+
         lines.append(f"## {code}")
         lines.append(f"{len(new)} new, {len(updated)} updated, {unchanged} unchanged, "
                      f"{len(new_links)} outside Canvas, {len(problems)} need attention")
