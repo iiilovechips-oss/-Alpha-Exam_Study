@@ -6,7 +6,7 @@ import re
 import shutil
 from pathlib import Path
 
-from canvas_sync.convert import render
+from exam_study.convert import render
 
 ROOT = Path(__file__).resolve().parent.parent
 MATERIALS = ROOT / "materials"
@@ -67,7 +67,7 @@ def digest(path: Path) -> str:
 def export() -> None:
     """Rebuild notebooklm/<COURSE>/ (everything) and notebooklm/_new/<COURSE>/ (not uploaded yet)."""
     if not MATERIALS.is_dir():
-        raise SystemExit("No materials/ folder yet. Run `canvas-sync sync` first to download your course files.")
+        raise SystemExit("No materials/ folder yet. Run `exam-study sync` first to download your course files.")
     uploaded = json.loads(UPLOADED.read_text()) if UPLOADED.exists() else {}
     if EXPORT.exists():
         shutil.rmtree(EXPORT)  # derived copy; rebuilt from materials/ every run
@@ -110,7 +110,7 @@ def export() -> None:
     MANIFEST.write_text(json.dumps(manifest, indent=1))
     if (EXPORT / "_new").exists():
         print("\nDrag the files in notebooklm/_new/<COURSE>/ into that course's notebook, then run "
-              "`canvas-sync uploaded`.\nChecklist: notebooklm/EXPORT_REPORT.md")
+              "`exam-study uploaded`.\nChecklist: notebooklm/EXPORT_REPORT.md")
     else:
         print("\nNothing new to upload to NotebookLM.")
 
@@ -118,7 +118,7 @@ def export() -> None:
 def mark_uploaded() -> None:
     """Record the current export as being in NotebookLM, so later exports only list what changed."""
     if not MANIFEST.exists():
-        raise SystemExit("Run `canvas-sync export` first.")
+        raise SystemExit("Run `exam-study export` first.")
     state = json.loads(MANIFEST.read_text())
     UPLOADED.write_text(json.dumps(state, indent=1))
     if (EXPORT / "_new").exists():

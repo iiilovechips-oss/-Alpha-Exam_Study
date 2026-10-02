@@ -7,7 +7,7 @@ import tomllib
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from canvas_sync.export import EXPORT, MATERIALS, ROOT, choose
+from exam_study.export import EXPORT, MATERIALS, ROOT, choose
 
 CONFIG = ROOT / "study.toml"
 STUDY = ROOT / "study"
@@ -38,7 +38,7 @@ def pack(query: str | None) -> None:
     exams, _ = load()
     wanted = [e for e in exams if query and query.lower() in label(e).lower()]
     if not wanted:
-        print("Which exam? Use part of a name, for example: canvas-sync pack \"302 exam 2\"\n")
+        print("Which exam? Use part of a name, for example: exam-study pack \"302 exam 2\"\n")
         for e in exams:
             print(f"  {e['date']}  {label(e)}")
         return
@@ -57,12 +57,12 @@ def pack(query: str | None) -> None:
 
 
 def ics(exams: list[dict], deadlines: list[dict]) -> str:
-    lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//canvas-sync//EN"]
+    lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//exam-study//EN"]
     for kind, item in [("Exam", e) for e in exams] + [("Due", d) for d in deadlines]:
         day = date.fromisoformat(item["date"])
         # A stable UID means re-importing updates an event instead of duplicating it.
         uid = hashlib.sha1(f"{kind}{label(item)}".encode()).hexdigest()
-        lines += ["BEGIN:VEVENT", f"UID:{uid}@canvas-sync", f"DTSTAMP:{day:%Y%m%d}T000000Z"]
+        lines += ["BEGIN:VEVENT", f"UID:{uid}@exam-study", f"DTSTAMP:{day:%Y%m%d}T000000Z"]
         if item.get("time"):
             start = datetime.fromisoformat(f"{item['date']}T{item['time']}")
             lines += [f"DTSTART:{start:%Y%m%dT%H%M%S}", f"DTEND:{start + timedelta(hours=item.get('hours', 1.5)):%Y%m%dT%H%M%S}"]

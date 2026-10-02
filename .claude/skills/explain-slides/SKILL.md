@@ -34,7 +34,7 @@ at `study.toml` and today's date:
 - Do one deck at a time and confirm before starting the next.
 
 ## Steps
-1. Run `uv run canvas-sync explain "<part of the deck's path>"`. It renders every slide to an image under
+1. Run `uv run exam-study explain "<part of the deck's path>"`. It renders every slide to an image under
    `study/explained/<course>/<deck>/` and writes `slides.json` with each slide's text. It only handles PDF
    decks; if there are two versions, use the fuller one ("Complete", "INSTRUCTOR", "Post-lecture").
 2. Read `slides.json`. For any slide whose text is empty or thin (charts, diagrams, formulas), open its
@@ -43,7 +43,7 @@ at `study.toml` and today's date:
    `{"story": "...", "slides": {"1": {"title": "...", "explain": "...", "terms": {"word": "meaning"}}}, "check": [...]}`.
    If `notes.json` already exists, add to it; do not rewrite slides that are already explained.
 4. Run the same command again to rebuild `index.html`. Tell the user to open it through the dashboard
-   (`uv run canvas-sync study`, then http://127.0.0.1:8765), because answers are only recorded when the page is
+   (`uv run exam-study study`, then http://127.0.0.1:8765), because answers are only recorded when the page is
    served that way. Opening the file directly still works for reading.
 
 ## What to write
@@ -99,7 +99,7 @@ until clicked. The aim is exam preparation: the user should meet questions like 
 - An item without `options` is a worked problem: the user reveals the answer and taps Got it / Partly /
   Missed it. Use these for journal entries and multi-step calculations, where the exam does too.
 - Aim for at least half tap-to-answer items, and never require typing. The user will not write out answers,
-  and the progress tracker (`canvas_sync/progress.py`) only learns from taps.
+  and the progress tracker (`exam_study/progress.py`) only learns from taps.
 - `seen` and `slide` are optional.
 
 **Find out what gets tested before writing.** Read the course's practice exam, exam review deck, study guide,

@@ -1,11 +1,13 @@
-# canvas-sync
+# Exam Study
 
-Pulls my course materials out of Canvas into an organized local folder, then builds a small,
-study-only copy of each course to load into NotebookLM or Claude.
+Helps you study for exams: it pulls your class materials out of Canvas, explains each lecture slide in plain
+words, and tests whether you actually understood it.
 
-I built it because every professor organizes Canvas differently (files in modules, files buried in
-pages, slides on SharePoint) and I wanted one folder per class that stays current without
-re-downloading things by hand each week.
+It keeps one organized folder per class up to date, builds a small study-only copy for NotebookLM, turns slide
+decks into study pages with exam-targeted practice questions, and tracks how ready you are for each exam.
+
+I built it because every professor organizes Canvas differently (files in modules, files buried in pages,
+slides on SharePoint) and I wanted one place that stays current and prepares me for the specific exam.
 
 ## What it does differently
 
@@ -56,16 +58,16 @@ when something breaks.
 ```bash
 uv sync
 cp .env.example .env              # then open .env and set CANVAS_API_URL to your school's Canvas address
-uv run canvas-sync login          # sign in to Canvas in the Chrome window that opens
-uv run canvas-sync courses        # lists your courses; put the IDs you want in CANVAS_COURSE_IDS in .env
-uv run canvas-sync sync           # downloads everything into materials/
+uv run exam-study login          # sign in to Canvas in the Chrome window that opens
+uv run exam-study courses        # lists your courses; put the IDs you want in CANVAS_COURSE_IDS in .env
+uv run exam-study sync           # downloads everything into materials/
 ```
 
 For the study features, also:
 
 ```bash
 cp study.example.toml study.toml  # then list your exams, what each covers, and topic weights
-uv run canvas-sync study          # opens the dashboard at http://127.0.0.1:8765
+uv run exam-study study          # opens the dashboard at http://127.0.0.1:8765
 ```
 
 To get a deck explained, open the project in Claude Code and ask, for example, "explain the Chapter 6
@@ -74,9 +76,9 @@ slides in easy words". Claude writes the explanations and questions; you read th
 ## Weekly use
 
 ```bash
-uv run canvas-sync update    # sync + export
+uv run exam-study update    # sync + export
 # drag notebooklm/_new/<COURSE>/ into that course's notebook
-uv run canvas-sync uploaded  # so next week only lists what changed
+uv run exam-study uploaded  # so next week only lists what changed
 ```
 
 | Command | What it does |
@@ -115,7 +117,7 @@ modeled on the course's own practice exams, checks the solution with a script, a
   the report instead of failing. Check your own institution's policy before automating your session.
 - **Safe to rerun.** A SQLite file (`state.db`) records each file's Canvas timestamp or content
   hash, so a second run only fetches what changed.
-- **Readable rules.** The export filter is a few word lists at the top of `canvas_sync/export.py`.
+- **Readable rules.** The export filter is a few word lists at the top of `exam_study/export.py`.
 - **Private by default.** `.env`, `.session.json`, `materials/`, `notebooklm/` and `reports/` are
   git-ignored; course content never enters the repository.
 
@@ -141,7 +143,7 @@ are there on purpose, so that anyone, including people who do not program, can f
 - Follow each course's policy on AI tools. The study features are for learning the material, not for
   producing graded work.
 - The export filter and a few defaults were tuned on my own courses. Expect to edit the word lists in
-  `canvas_sync/export.py` and the examples in `.claude/skills/` for yours.
+  `exam_study/export.py` and the examples in `.claude/skills/` for yours.
 
 ## License
 

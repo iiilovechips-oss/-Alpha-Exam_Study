@@ -4,7 +4,7 @@
     {
       "name": "study",
       "runtimeExecutable": "uv",
-      "runtimeArgs": ["run", "canvas-sync", "study"],
+      "runtimeArgs": ["run", "exam-study", "study"],
       "port": 8765
     }
   ]

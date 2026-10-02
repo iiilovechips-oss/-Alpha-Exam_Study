@@ -40,8 +40,8 @@ MD_LINK = re.compile(r'\[([^\]]+)\]\((https?://[^)\s]+)(?: "[^"]*")?\)')
 
 LOGIN_REMINDER = (
     "Canvas login needed: your saved session has expired and nobody logged in "
-    "in time. Run `uv run canvas-sync login`, sign in in the Chrome window that "
-    "opens, then run `uv run canvas-sync sync` again. Nothing was downloaded."
+    "in time. Run `uv run exam-study login`, sign in in the Chrome window that "
+    "opens, then run `uv run exam-study sync` again. Nothing was downloaded."
 )
 
 
@@ -58,7 +58,7 @@ def notify(message: str) -> None:
     """Best-effort macOS notification so scheduled runs don't fail silently."""
     try:
         subprocess.run(
-            ["osascript", "-e", f'display notification "{message}" with title "canvas-sync"'],
+            ["osascript", "-e", f'display notification "{message}" with title "exam-study"'],
             check=False, capture_output=True, timeout=5,
         )
     except (OSError, subprocess.SubprocessError):
@@ -336,7 +336,7 @@ def write_report(lines: list[str]) -> None:
 def sync(canvas: Canvas) -> None:
     lines = [f"# Canvas sync — {datetime.now():%Y-%m-%d %H:%M}", ""]
     if not canvas.ensure_login():
-        notify("Canvas sync skipped - login needed. Run: uv run canvas-sync login")
+        notify("Canvas sync skipped - login needed. Run: uv run exam-study login")
         write_report(lines + [f"- [ ] ACTION NEEDED: {LOGIN_REMINDER}"])
         return
 
@@ -472,7 +472,7 @@ def login(canvas: Canvas) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(prog="canvas-sync", description=__doc__)
+    parser = argparse.ArgumentParser(prog="exam-study", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("login", help="open Chrome to sign in to Canvas and save the session").set_defaults(func=login)
     sub.add_parser("courses", help="list your active Canvas courses and their IDs").set_defaults(func=list_courses)
@@ -489,8 +489,8 @@ def main() -> None:
     sub.add_parser("calendar", help="write study/calendar.ics with exams and deadlines")
     sub.add_parser("digest", help="show new material and what is due in the next two weeks")
     args = parser.parse_args()
-    from canvas_sync import study
-    from canvas_sync.export import export, mark_uploaded
+    from exam_study import study
+    from exam_study.export import export, mark_uploaded
     if args.command == "export":
         return export()
     if args.command == "uploaded":
@@ -498,13 +498,13 @@ def main() -> None:
     if args.command == "pack":
         return study.pack(args.exam)
     if args.command == "explain":
-        from canvas_sync.explain import explain
+        from exam_study.explain import explain
         return explain(args.deck)
     if args.command == "study":
-        from canvas_sync.progress import serve
+        from exam_study.progress import serve
         return serve()
     if args.command == "progress":
-        from canvas_sync.progress import text_summary
+        from exam_study.progress import text_summary
         return print(text_summary())
     if args.command == "calendar":
         return study.calendar()

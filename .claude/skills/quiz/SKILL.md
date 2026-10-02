@@ -27,7 +27,7 @@ Then match the depth to the level:
 ## Scope
 1. Read `materials/COURSE_GUIDE.md` and `study.toml`.
 2. If an exam is named, limit the scope to that exam's `covers` patterns (the same files
-   `uv run canvas-sync pack "<exam>"` would collect). If a topic is named, find the files on that topic.
+   `uv run exam-study pack "<exam>"` would collect). If a topic is named, find the files on that topic.
    With neither, use the next upcoming exam for the course.
 3. Read the actual files in scope before writing anything. Do not write questions from memory or from
    general knowledge of the subject; every question must be answerable from these materials.

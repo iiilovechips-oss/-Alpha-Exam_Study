@@ -1,8 +1,8 @@
 from pathlib import Path
 from types import SimpleNamespace
 
-from canvas_sync.cli import Scan, folder_names, safe_name
-from canvas_sync.export import choose
+from exam_study.cli import Scan, folder_names, safe_name
+from exam_study.export import choose
 
 
 def test_safe_name_strips_path_characters():
@@ -83,7 +83,7 @@ def test_sharepoint_links_are_named_from_surrounding_text():
 
 
 def test_study_pack_only_takes_material_the_exam_covers(tmp_path):
-    from canvas_sync.study import pack_files
+    from exam_study.study import pack_files
     make(tmp_path / "ACCY 302",
          "Day 11 (Tuesday)/Midterm1 Practice Problems.docx",
          "Day 13 (Tuesday)/Day 13 LECTURE CVP.pdf",
@@ -94,7 +94,7 @@ def test_study_pack_only_takes_material_the_exam_covers(tmp_path):
 
 
 def test_calendar_has_timed_exams_and_all_day_deadlines():
-    from canvas_sync.study import ics
+    from exam_study.study import ics
     text = ics([{"course": "ACCY 302", "name": "Exam 2", "date": "2026-10-27", "time": "19:00", "where": "CIF 3039"}],
                [{"course": "PSYC 475", "name": "Assignment 2 due", "date": "2026-11-13"}])
     assert "SUMMARY:EXAM: ACCY 302 Exam 2" in text and "DTSTART:20261027T190000" in text
@@ -104,7 +104,7 @@ def test_calendar_has_timed_exams_and_all_day_deadlines():
 
 def test_excel_becomes_markdown_with_values_and_formulas(tmp_path):
     from openpyxl import Workbook
-    from canvas_sync.convert import render
+    from exam_study.convert import render
     book = Workbook()
     sheet = book.active
     sheet.title = "Costs"
@@ -120,7 +120,7 @@ def test_excel_becomes_markdown_with_values_and_formulas(tmp_path):
 
 def test_big_pdf_is_split_into_parts(tmp_path, monkeypatch):
     from pypdf import PdfReader, PdfWriter
-    from canvas_sync import convert
+    from exam_study import convert
     writer = PdfWriter()
     for _ in range(6):
         writer.add_blank_page(width=200, height=200)
@@ -134,7 +134,7 @@ def test_big_pdf_is_split_into_parts(tmp_path, monkeypatch):
 
 
 def test_mastery_starts_at_self_rating_and_follows_the_answers():
-    from canvas_sync.progress import mastery, scored_answers
+    from exam_study.progress import mastery, scored_answers
     assert mastery(0.4, []) == (0.4, 0.0)
     score, evidence = mastery(0.0, [(1.0, 1.0)] * 6)          # six tap answers, all right, from a 0% start
     assert round(score, 2) == 0.75 and evidence == 6.0
@@ -145,14 +145,14 @@ def test_mastery_starts_at_self_rating_and_follows_the_answers():
 
 
 def test_readiness_weights_topics_by_their_share_of_the_exam():
-    from canvas_sync.progress import readiness
+    from exam_study.progress import readiness
     topics = [{"weight": 75, "mastery": 0.4, "evidence": 5.0}, {"weight": 25, "mastery": 0.8, "evidence": 0.0}]
     ready, covered = readiness(topics)
     assert round(ready, 2) == 0.5 and covered == 0.75
 
 
 def test_study_time_adds_up_by_deck_and_day():
-    from canvas_sync.progress import duration, seconds_for
+    from exam_study.progress import duration, seconds_for
     log = [{"ts": "2026-10-01T20:00:00", "course": "ACCY 301", "deck": "A", "seconds": 15},
            {"ts": "2026-10-01T20:00:15", "course": "ACCY 301", "deck": "B", "seconds": 15},
            {"ts": "2026-10-02T09:00:00", "course": "ACCY 301", "deck": "A", "seconds": 3600}]

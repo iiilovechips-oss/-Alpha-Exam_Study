@@ -8,7 +8,7 @@ import html
 import json
 from pathlib import Path
 
-from canvas_sync.export import MATERIALS, ROOT
+from exam_study.export import MATERIALS, ROOT
 
 EXPLAINED = ROOT / "study" / "explained"
 IMAGE_WIDTH = 1100
@@ -100,7 +100,12 @@ body.only-high .slide:not(.high) {{ display:none; }}
 SCRIPT = """<script>
 (function () {
   var body = document.body.dataset;
-  var KEY = 'canvas-sync:' + body.course + '/' + body.deck;
+  var KEY = 'exam-study:' + body.course + '/' + body.deck;
+  // The project used to be called canvas-sync. Carry over anything this browser saved under the old name.
+  ['', ':seconds'].forEach(function (tail) {
+    var before = KEY.replace('exam-study:', 'canvas-sync:') + tail;
+    try { if (!localStorage.getItem(KEY + tail) && localStorage.getItem(before)) localStorage.setItem(KEY + tail, localStorage.getItem(before)); } catch (e) {}
+  });
   var saved = {};
   try { saved = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
   var served = location.protocol.indexOf('http') === 0;

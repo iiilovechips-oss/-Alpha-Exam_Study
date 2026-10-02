@@ -14,8 +14,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
 
-from canvas_sync.explain import EXPLAINED
-from canvas_sync.export import ROOT
+from exam_study.explain import EXPLAINED
+from exam_study.export import ROOT
 
 LOG = ROOT / "study" / "progress.jsonl"   # one line per answer
 TIME_LOG = ROOT / "study" / "time.jsonl"   # one line per few seconds of active study time

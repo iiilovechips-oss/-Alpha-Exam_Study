@@ -1,7 +1,7 @@
 [project]
-name = "canvas-sync"
+name = "exam-study"
 version = "0.1.0"
-description = "Pull class materials from Canvas into an organized local folder for NotebookLM and Claude."
+description = "Pulls class materials from Canvas, explains each lecture slide in plain words, and tests your understanding."
 requires-python = ">=3.11"
 dependencies = [
     "markdownify>=1.2.3",
@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.scripts]
-canvas-sync = "canvas_sync.cli:main"
+exam-study = "exam_study.cli:main"
 
 [build-system]
 requires = ["hatchling"]
