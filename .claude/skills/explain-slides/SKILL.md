@@ -7,6 +7,23 @@ description: Build a slide-by-slide study page for a lecture deck, with each sli
 
 Arguments: a course and a deck (chapter, week or file name). Optionally a slide range.
 
+## Ask where the user is first
+Before explaining, quizzing or writing a problem, find out how well the user already knows the topic.
+1. Read `study/LEVELS.md`. If the topic has a rating there, use it and do not ask again.
+2. If it is missing, ask one short question: roughly what percent of this topic do they feel they
+   understand (0% = never seen it, 100% = could teach it)? Offer, as an option, a 5-question check on the
+   core ideas if they are not sure. Do not force the check; a self-rating is enough to start.
+3. Save the answer as a new row in `study/LEVELS.md` with today's date. Update the row when the user gives
+   a new rating or when quiz results clearly show a different level.
+
+Then match the depth to the level:
+- **Under 30% (new to it):** assume nothing. Start from what the topic is for, build each idea on the one
+  before, define every term, show a tiny example before the real one, and go slowly through every step of
+  a calculation or journal entry. Say what must be understood before moving on.
+- **30% to 70% (partly there):** a quick reminder of the basics, then spend the time on the parts that
+  usually cause mistakes.
+- **Over 70% (mostly solid):** keep it brief. Focus on traps, exceptions and exam-style practice.
+
 ## Check first: is this deck still going to be tested?
 Explaining a deck takes real effort, so do not spend it on material that is finished. Before starting, look
 at `study.toml` and today's date:

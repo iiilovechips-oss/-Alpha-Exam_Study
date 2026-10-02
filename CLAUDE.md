@@ -22,6 +22,8 @@ Tests: `uv run pytest`.
   verified solution). Generated problems go in `study/generated/`.
 
 ## Answering questions about class material
+- `study/LEVELS.md` holds the user's self-rated understanding per topic. Read it before teaching or quizzing,
+  ask for a rating if the topic is missing, and match the depth to the level (see the skills).
 - Homework on McGraw-Hill Connect (ACCY 301), PrairieLearn (BADM 210) and Canvas quizzes (ACCY 302) is not in
   `materials/`. When the user asks for a study guide or exam prep for those courses, mention once that they can
   save those pages into `materials/<course>/Homework/` (or paste them) to have them included, then continue.
