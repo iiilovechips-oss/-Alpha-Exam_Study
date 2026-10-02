@@ -56,16 +56,27 @@ at `study.toml` and today's date:
 - For housekeeping slides (reminders, road maps), one sentence is enough; say it is not exam content.
 
 ## End-of-deck check questions
-Every finished deck gets a `check` list in `notes.json`:
-`"check": [{"q": "...", "a": "...", "slide": 12}]`. The page shows them at the bottom with the answers hidden
-until clicked. They test whether the user understood the deck, so:
-- Write 6 to 8 questions that together cover the whole deck, in the order the deck teaches.
-- Mix "say it in your own words" questions with small calculations or journal entries. Use new numbers
-  and new scenarios, not the ones on the slides.
-- Every question must be answerable from this deck alone. Give the slide to reread in `slide`.
-- Answers are short and in the same easy wording, with the steps shown for anything calculated.
-- Check every number with a script before writing it.
-- Match the difficulty to the user's level in `study/LEVELS.md`.
+Every finished deck gets a `check` list in `notes.json`. The page shows it at the bottom with answers hidden
+until clicked. The aim is exam preparation: the user should meet questions like these on the real exam.
+
+`"check": [{"q": "...", "options": ["...", "..."], "a": "...", "seen": "...", "slide": 12}]`
+(`options` only for multiple choice; `seen` and `slide` are optional.)
+
+**Find out what gets tested before writing.** Read the course's practice exam, exam review deck, study guide,
+in-class exercises and any homework or quiz pages for the same chapter. Note which ideas they test, in what
+format (multiple choice, journal entry, multi-part problem), and how the question is usually worded. Build
+the check questions around those ideas and formats, and weight them the same way. Put the evidence in
+`seen`, for example "The practice exam tests this in question 13".
+
+**Make them transferable, not slide-specific.**
+- Test the idea, not the slide. A question should make sense to someone who learned the topic from a
+  different lecture, and the skill it practices should work on any company or scenario.
+- Use new companies, new numbers and new situations. Never ask "what did slide 9 say" or reuse a slide's example.
+- Ask in the exam's own format and at the exam's difficulty.
+- Include the common trap the real exam uses (extra information that is not needed, a date that does not
+  count, a net figure that looks like a gross one).
+- 6 to 8 questions covering the deck's main ideas. Answers are short, in easy wording, with steps shown.
+- Check every number with a script. Match the difficulty to the user's level in `study/LEVELS.md`.
 
 ## Easy wording rules
 - Short sentences. Common words. Write the way you would explain it to a friend outside the class.

@@ -47,6 +47,8 @@ h1 {{ font-size:1.5rem; margin:0 0 4px; }}
 .check details {{ border-top:1px solid var(--line); padding:10px 0; }}
 .check summary {{ cursor:pointer; font-weight:600; }}
 .check .answer {{ margin:8px 0 0 18px; }}
+.check .options {{ margin:8px 0 0 4px; }}
+.check details[open] summary {{ margin-bottom:4px; }}
 .check .from {{ color:var(--soft); font-size:.85rem; }}
 @media (max-width:820px) {{ .slide {{ grid-template-columns:1fr; }} }}
 </style></head><body><main>
@@ -112,12 +114,18 @@ def build(out: Path) -> Path:
                       f'alt="Slide {slide["n"]}"><div class="note"><div class="num">Slide {slide["n"]}</div>{body}</div></section>')
     story = (f'<div class="story"><h2>The whole story in plain words</h2>{paragraphs(notes["story"])}</div>'
              if notes.get("story") else "")
-    questions = "".join(
-        f'<details><summary>{i}. {html.escape(item["q"])}</summary><div class="answer">{paragraphs(item["a"])}'
-        + (f'<div class="from">See slide {item["slide"]}</div>' if item.get("slide") else "") + "</div></details>"
-        for i, item in enumerate(notes.get("check", []), 1))
-    check = (f'<div class="check"><h2>Check yourself</h2><p>You should be able to answer these after this deck. '
-             f'Try each one before opening the answer.</p>{questions}</div>' if questions else "")
+    questions = ""
+    for i, item in enumerate(notes.get("check", []), 1):
+        options = "".join(f"<li>{html.escape(o)}</li>" for o in item.get("options", []))
+        questions += (
+            f'<details><summary>{i}. {html.escape(item["q"])}</summary>'
+            + (f'<ol type="A" class="options">{options}</ol>' if options else "")
+            + f'<div class="answer">{paragraphs(item["a"])}'
+            + (f'<div class="from">Why it is likely on the exam: {html.escape(item["seen"])}</div>' if item.get("seen") else "")
+            + (f'<div class="from">To review: slide {item["slide"]}</div>' if item.get("slide") else "")
+            + "</div></details>")
+    check = (f'<div class="check"><h2>Check yourself</h2><p>Exam-style questions on the ideas in this deck, built from what the practice exam and '
+             f'review material test. Work each one out before opening it.</p>{questions}</div>' if questions else "")
     page = PAGE.format(title=html.escape(out.name), course=html.escape(out.parent.name), done=len(by_slide),
                        total=len(slides), story=story, slides="\n".join(blocks), check=check)
     (out / "index.html").write_text(page)
