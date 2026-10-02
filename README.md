@@ -40,16 +40,36 @@ Canvas ──► sync ──► materials/<COURSE>/<week or chapter>/   (everyth
   changed, what was skipped and what needs a manual look. The last step, adding files to a notebook,
   is deliberately left to a person.
 
-## Setup
+## What you need
 
-Requires [uv](https://docs.astral.sh/uv/) and Google Chrome.
+- A Mac (built and tested on macOS; the core should run elsewhere but that is untested).
+- [uv](https://docs.astral.sh/uv/), which installs Python and the libraries for you.
+- Google Chrome, used for the Canvas login.
+- For the AI features only (slide explanations, quizzes, practice problems): [Claude Code](https://claude.com/claude-code)
+  with a Claude subscription. The download, export, dashboard and timer work without it.
+
+This is an early version that works for my courses. Expect to adjust it for yours, and please open an issue
+when something breaks.
+
+## Setup
 
 ```bash
 uv sync
-cp .env.example .env      # set CANVAS_API_URL, and optionally CANVAS_COURSE_IDS
-uv run canvas-sync login  # sign in to Canvas in the Chrome window that opens
-uv run canvas-sync courses
+cp .env.example .env              # then open .env and set CANVAS_API_URL to your school's Canvas address
+uv run canvas-sync login          # sign in to Canvas in the Chrome window that opens
+uv run canvas-sync courses        # lists your courses; put the IDs you want in CANVAS_COURSE_IDS in .env
+uv run canvas-sync sync           # downloads everything into materials/
 ```
+
+For the study features, also:
+
+```bash
+cp study.example.toml study.toml  # then list your exams, what each covers, and topic weights
+uv run canvas-sync study          # opens the dashboard at http://127.0.0.1:8765
+```
+
+To get a deck explained, open the project in Claude Code and ask, for example, "explain the Chapter 6
+slides in easy words". Claude writes the explanations and questions; you read them through the dashboard.
 
 ## Weekly use
 

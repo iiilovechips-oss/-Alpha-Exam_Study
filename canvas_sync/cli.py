@@ -71,8 +71,9 @@ class Canvas:
     def __init__(self, pw):
         load_dotenv(ROOT / ".env")
         self.base = (os.getenv("CANVAS_API_URL") or "").rstrip("/")
-        if not self.base:
-            sys.exit("Set CANVAS_API_URL in .env first.")
+        if not self.base or "youruniversity" in self.base:
+            sys.exit("Open the .env file and set CANVAS_API_URL to your school's Canvas address, "
+                     "for example https://canvas.illinois.edu (copy .env.example to .env if you have not yet).")
         self.pw = pw
         self.token = os.getenv("CANVAS_API_TOKEN") or ""
         self.login_timeout = int(os.getenv("CANVAS_LOGIN_TIMEOUT") or 300)
@@ -106,7 +107,8 @@ class Canvas:
             print("Canvas rejected CANVAS_API_TOKEN (expired or revoked). Update it in .env.")
             return False
 
-        print(f"Canvas session expired. Log in in the Chrome window that just opened "
+        reason = "Canvas session expired." if SESSION_FILE.exists() else "Not logged in to Canvas yet."
+        print(f"{reason} Log in in the Chrome window that just opened "
               f"(waiting up to {self.login_timeout}s) ...")
         notify("Canvas session expired - log in in the Chrome window to continue the sync.")
         try:

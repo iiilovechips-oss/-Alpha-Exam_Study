@@ -66,6 +66,8 @@ def digest(path: Path) -> str:
 
 def export() -> None:
     """Rebuild notebooklm/<COURSE>/ (everything) and notebooklm/_new/<COURSE>/ (not uploaded yet)."""
+    if not MATERIALS.is_dir():
+        raise SystemExit("No materials/ folder yet. Run `canvas-sync sync` first to download your course files.")
     uploaded = json.loads(UPLOADED.read_text()) if UPLOADED.exists() else {}
     if EXPORT.exists():
         shutil.rmtree(EXPORT)  # derived copy; rebuilt from materials/ every run
