@@ -7,6 +7,17 @@ I built it because every professor organizes Canvas differently (files in module
 pages, slides on SharePoint) and I wanted one folder per class that stays current without
 re-downloading things by hand each week.
 
+## What it does differently
+
+- **Starts from your real course site.** It reads Canvas the way your professors actually use it, so there is
+  no manual uploading of each file.
+- **Runs on your own machine.** Your login, your files and your Claude subscription. No server, no API key
+  and nothing shared with anyone.
+- **Study features aimed at the exam.** Slide decks become study pages with a plain-language explanation
+  next to every slide. Practice questions are built from what the course's own practice exam, review class
+  and exercises test, and say why each one is likely to come up.
+- **You stay in control.** Every run writes a checklist of what was added, skipped or needs a look.
+
 ## How it works
 
 ```
@@ -92,6 +103,21 @@ modeled on the course's own practice exams, checks the solution with a script, a
 - Videos are listed in the report, not downloaded.
 - SharePoint files are named from the text around their link, which can be awkward.
 - Links to Box, Google Drive and YouTube are listed for manual download.
+
+## Using it responsibly
+
+- It only reads what your own account can already see. Check your school's rules before automating your
+  Canvas session.
+- Course materials belong to your instructors. Keep them on your machine and in your own private notebooks;
+  do not publish or share them. Everything the tool downloads or generates is git-ignored for that reason.
+- Follow each course's policy on AI tools. The study features are for learning the material, not for
+  producing graded work.
+- The export filter and a few defaults were tuned on my own courses. Expect to edit the word lists in
+  `canvas_sync/export.py` and the examples in `.claude/skills/` for yours.
+
+## License
+
+MIT. See `LICENSE`.
 
 ## Tests
 
