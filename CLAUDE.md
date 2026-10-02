@@ -1,5 +1,8 @@
 # canvas-sync
 
+Read `PLAN.md` first: it holds the full plan, the user's decisions, the current state and the next steps.
+Keep it up to date when features are added or priorities change.
+
 Pulls class files from Canvas into `materials/<COURSE>/<module>/`. Weekly command: `uv run canvas-sync update` (sync + export);
 each run writes a checklist to `reports/`. Videos are skipped (listed in the report, not downloaded). `state.db` tracks what has been downloaded.
 
