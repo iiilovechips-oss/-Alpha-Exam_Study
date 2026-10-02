@@ -126,6 +126,12 @@ modeled on the course's own practice exams, checks the solution with a script, a
 - SharePoint files are named from the text around their link, which can be awkward.
 - Links to Box, Google Drive and YouTube are listed for manual download.
 
+## How this was built
+
+I designed this tool and made the product decisions; the code was written by an AI coding assistant
+(Claude Code) under my direction, and I tested it on my own courses. The plain-language comments in the code
+are there on purpose, so that anyone, including people who do not program, can follow what each part does.
+
 ## Using it responsibly
 
 - It only reads what your own account can already see. Check your school's rules before automating your

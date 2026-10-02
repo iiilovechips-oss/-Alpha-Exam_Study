@@ -3,13 +3,6 @@
 Read `PLAN.md` first: it holds the full plan, the user's decisions, the current state and the next steps.
 Keep it up to date when features are added or priorities change.
 
-**Working with this user:** they are the decision-maker and the source of the ideas; Claude writes the code. They
-read the replies in full and are fine with detail, and they review the code and its comments to understand what is
-happening. Be honest about who did what: do not describe them as having written the technical parts. They do not have a
-coding background and read code as if it were English, so: when you change code, say in plain words what it now
-does and why; define any technical term the first time you use it; and write code comments as plain sentences a
-non-programmer can follow.
-
 **Standing rule:** whenever the user suggests a new feature or a change to how something should work, add it to
 `PLAN.md` in the same turn (under decisions, features built, open items or parked ideas, whichever fits), even
 if it is not built yet.
