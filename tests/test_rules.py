@@ -149,3 +149,12 @@ def test_readiness_weights_topics_by_their_share_of_the_exam():
     topics = [{"weight": 75, "mastery": 0.4, "evidence": 5.0}, {"weight": 25, "mastery": 0.8, "evidence": 0.0}]
     ready, covered = readiness(topics)
     assert round(ready, 2) == 0.5 and covered == 0.75
+
+
+def test_study_time_adds_up_by_deck_and_day():
+    from canvas_sync.progress import duration, seconds_for
+    log = [{"ts": "2026-10-01T20:00:00", "course": "ACCY 301", "deck": "A", "seconds": 15},
+           {"ts": "2026-10-01T20:00:15", "course": "ACCY 301", "deck": "B", "seconds": 15},
+           {"ts": "2026-10-02T09:00:00", "course": "ACCY 301", "deck": "A", "seconds": 3600}]
+    assert seconds_for(log) == 3630 and seconds_for(log, "ACCY 301", "A") == 3615 and seconds_for(log, day="2026-10-01") == 30
+    assert duration(3630) == "1h 00m" and duration(125) == "2m"

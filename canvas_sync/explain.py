@@ -56,6 +56,10 @@ h1 {{ font-size:1.5rem; margin:0 0 4px; }}
 .focus button {{ font:inherit; margin-top:10px; padding:6px 12px; border-radius:8px; border:1px solid var(--line);
                  background:var(--bg); color:var(--ink); cursor:pointer; }}
 body.only-high .slide:not(.high) {{ display:none; }}
+.timer {{ position:fixed; right:16px; bottom:16px; z-index:10; background:var(--card); color:var(--ink);
+          border:1px solid var(--line); border-radius:999px; padding:8px 14px; font-size:.9rem;
+          box-shadow:0 2px 10px rgba(0,0,0,.18); font-variant-numeric:tabular-nums; }}
+.timer.paused {{ opacity:.55; }}
 .slide .ask {{ grid-column:1 / -1; border-top:none; padding:0; }}
 .slide .ask .text {{ font-weight:400; }}
 .slide .ask .askimg {{ display:block; max-width:760px; width:100%; margin:8px 0 12px; }}
@@ -88,7 +92,8 @@ body.only-high .slide:not(.high) {{ display:none; }}
 {focus}
 {slides}
 {check}
-</main>{script}</body></html>
+</main>
+<div class="timer" id="timer">0:00 on this deck</div>{script}</body></html>
 """
 
 
@@ -148,6 +153,56 @@ SCRIPT = """<script>
     }
   });
   tally();
+  // --- Study timer ---------------------------------------------------------------------------------
+  // Counts one second at a time, but only while this tab is in front and you have moved, scrolled, clicked
+  // or typed in the last two minutes. So leaving the page open while you are away does not add time.
+  var TKEY = KEY + ':seconds', IDLE_AFTER = 120, SEND_EVERY = 15;
+  var total = Number(localStorage.getItem(TKEY) || 0), today = 0, unsent = 0, lastActive = Date.now();
+  var pill = document.getElementById('timer');
+  ['scroll', 'mousemove', 'keydown', 'click', 'touchstart'].forEach(function (name) {
+    window.addEventListener(name, function () { lastActive = Date.now(); }, {passive: true});
+  });
+  function clock(sec) {
+    var h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s2 = sec % 60;
+    return (h ? h + ':' + (m < 10 ? '0' : '') : '') + m + ':' + (s2 < 10 ? '0' : '') + s2;
+  }
+  function currentSlide() {   // the slide sitting at the middle of the screen
+    var mid = window.innerHeight / 2, found = '';
+    document.querySelectorAll('.slide').forEach(function (el) {
+      var r = el.getBoundingClientRect();
+      if (r.top <= mid && r.bottom >= mid) found = el.id.replace('slide-', '');
+    });
+    return found;
+  }
+  function payload() {
+    return JSON.stringify({course: body.course, deck: body.deck, topic: body.topic, seconds: unsent, slide: currentSlide()});
+  }
+  function send() {
+    if (!served || !unsent) return;
+    fetch('/api/time', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: payload(), keepalive: true});
+    unsent = 0;
+  }
+  function draw(active) {
+    if (!pill) return;
+    pill.textContent = clock(total) + ' on this deck' + (today ? ' \u00b7 ' + clock(today) + ' today in total' : '') + (active ? '' : ' (paused)');
+    pill.classList.toggle('paused', !active);
+  }
+  if (served) fetch('/api/time?course=' + encodeURIComponent(body.course) + '&deck=' + encodeURIComponent(body.deck))
+    .then(function (r) { return r.json(); })
+    .then(function (d) { total = Math.max(total, d.deck); today = d.today; draw(true); }).catch(function () {});
+  setInterval(function () {
+    var active = document.visibilityState === 'visible' && (Date.now() - lastActive) / 1000 < IDLE_AFTER;
+    if (active) {
+      total += 1; unsent += 1; if (today || served) today += 1;
+      try { localStorage.setItem(TKEY, String(total)); } catch (e) {}
+      if (unsent >= SEND_EVERY) send();
+    }
+    draw(active);
+  }, 1000);
+  window.addEventListener('pagehide', send);
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState !== 'visible') send(); });
+  draw(true);
+
   var toggle = document.getElementById('only-high');
   if (toggle) toggle.addEventListener('click', function () {
     var on = document.body.classList.toggle('only-high');

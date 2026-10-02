@@ -12,12 +12,13 @@ import webbrowser
 from datetime import date, datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import unquote
+from urllib.parse import parse_qs, unquote, urlparse
 
 from canvas_sync.explain import EXPLAINED
 from canvas_sync.export import ROOT
 
 LOG = ROOT / "study" / "progress.jsonl"   # one line per answer
+TIME_LOG = ROOT / "study" / "time.jsonl"   # one line per few seconds of active study time
 LEVELS = ROOT / "study" / "LEVELS.md"     # self-ratings, used only as a starting guess
 CONFIG = ROOT / "study.toml"
 PORT = 8765
@@ -71,6 +72,24 @@ def load_events() -> list[dict]:
     return [json.loads(line) for line in LOG.read_text().splitlines() if line.strip()]
 
 
+def load_time() -> list[dict]:
+    if not TIME_LOG.exists():
+        return []
+    return [json.loads(line) for line in TIME_LOG.read_text().splitlines() if line.strip()]
+
+
+def seconds_for(entries: list[dict], course: str | None = None, deck: str | None = None, day: str | None = None) -> int:
+    """Add up study seconds, optionally for one course, one deck, or one day ("2026-10-01")."""
+    return sum(e["seconds"] for e in entries
+               if (course is None or e["course"] == course) and (deck is None or e["deck"] == deck)
+               and (day is None or e["ts"].startswith(day)))
+
+
+def duration(seconds: int) -> str:
+    hours, minutes = seconds // 3600, seconds % 3600 // 60
+    return f"{hours}h {minutes:02}m" if hours else f"{minutes}m"
+
+
 def load_levels() -> dict[tuple[str, str], float]:
     levels = {}
     if LEVELS.exists():
@@ -104,7 +123,7 @@ def all_reports(today: date | None = None) -> list[dict]:
 
 
 def decks(events: list[dict]) -> list[dict]:
-    found = []
+    found, times = [], load_time()
     for slides_file in sorted(EXPLAINED.glob("*/*/slides.json")):
         folder = slides_file.parent
         notes = json.loads((folder / "notes.json").read_text()) if (folder / "notes.json").exists() else {}
@@ -115,7 +134,7 @@ def decks(events: list[dict]) -> list[dict]:
                       "slides": len(json.loads(slides_file.read_text())["slides"]),
                       "explained": len(notes.get("slides", {})),
                       "questions": len(notes.get("check", [])) + sum(1 for s in notes.get("slides", {}).values() if s.get("question")),
-                      "answered": len(answered), "url": f"/explained/{course}/{deck}/index.html"})
+                      "answered": len(answered), "seconds": seconds_for(times, course, deck), "url": f"/explained/{course}/{deck}/index.html"})
     return found
 
 
@@ -133,6 +152,9 @@ def text_summary() -> str:
                      f"{r['covered']:.0%} of the exam backed by solid evidence")
         lines += [f"  {t['name']:<16} {t['mastery']:>4.0%}  (exam weight {t['weight']}, {trust(t['evidence'])})"
                   for t in r["topics"]]
+    times = load_time()
+    if times:
+        lines.append(f"Study time: {duration(seconds_for(times, day=date.today().isoformat()))} today, {duration(seconds_for(times))} in total")
     return "\n".join(lines) or "No upcoming exam in study.toml has a [exam.weights] table yet."
 
 
@@ -159,8 +181,10 @@ th {{ border-top:none; color:var(--soft); font-weight:600; }} a {{ color:var(--a
 </style></head><body><main>
 <h1>Study progress</h1>
 <p class="sub">Measured from the questions you answer, not from what you have read. Reload after answering more.</p>
+<div class="card"><h2>Study time</h2><div class="big">{today}</div><div class="small">today · {total} in total ·
+counted only while a study page is in front and you are active on it</div></div>
 {exams}
-<div class="card"><h2>Study pages</h2><table><tr><th>Deck</th><th>Topic</th><th>Explained</th><th>Questions answered</th></tr>{decks}</table></div>
+<div class="card"><h2>Study pages</h2><table><tr><th>Deck</th><th>Topic</th><th>Explained</th><th>Questions answered</th><th>Time spent</th></tr>{decks}</table></div>
 <p class="small">How the numbers work: each topic starts at your own rating. Every question you answer moves it:
 tap-to-answer questions count fully, self-graded ones count 60%, and a repeat of a question counts half. Readiness
 is the topics combined by how much of the exam each one is. It is an estimate, not a promise.</p>
@@ -193,9 +217,13 @@ def dashboard(today: date | None = None) -> str:
         cards = '<div class="card">No upcoming exam has topic weights yet. Add an <code>[exam.weights]</code> table in study.toml.</div>'
     rows = "".join(
         f'<tr><td><a href="{html.escape(d["url"])}">{html.escape(d["deck"])}</a><div class="small">{html.escape(d["course"])}</div></td>'
-        f'<td>{html.escape(d["topic"])}</td><td>{d["explained"]} / {d["slides"]}</td><td>{d["answered"]} / {d["questions"]}</td></tr>'
+        f'<td>{html.escape(d["topic"])}</td><td>{d["explained"]} / {d["slides"]}</td><td>{d["answered"]} / {d["questions"]}</td>'
+        f'<td>{duration(d["seconds"]) if d["seconds"] else "-"}'
+        + (f'<div class="small">{d["seconds"] / 60 / d["slides"]:.1f} min per page</div>' if d["seconds"] else "") + "</td></tr>"
         for d in decks(load_events()))
-    return DASHBOARD.format(exams=cards, decks=rows or "<tr><td colspan=4>No study pages yet.</td></tr>")
+    times = load_time()
+    return DASHBOARD.format(exams=cards, decks=rows or "<tr><td colspan=5>No study pages yet.</td></tr>",
+                            today=duration(seconds_for(times, day=today.isoformat())), total=duration(seconds_for(times)))
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -211,6 +239,12 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         path = unquote(self.path.split("?")[0])
+        if path == "/api/time":  # the timer on a study page asks how long has been spent so far
+            query = parse_qs(urlparse(self.path).query)
+            times = load_time()
+            answer = {"deck": seconds_for(times, query.get("course", [""])[0], query.get("deck", [""])[0]),
+                      "today": seconds_for(times, day=date.today().isoformat())}
+            return self.send(200, json.dumps(answer).encode(), "application/json")
         if path == "/":
             return self.send(200, dashboard().encode())
         if path.startswith("/explained/"):
@@ -221,6 +255,21 @@ class Handler(BaseHTTPRequestHandler):
         self.send(404, b"Not found")
 
     def do_POST(self):
+        if self.path == "/api/time":  # the timer reports a few more seconds of active study
+            try:
+                data = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))))
+                seconds = int(data["seconds"])
+                if not 0 < seconds <= 300:
+                    raise ValueError("seconds")
+                entry = {"ts": datetime.now().isoformat(timespec="seconds"), "course": str(data["course"]),
+                         "deck": str(data["deck"]), "topic": str(data["topic"]), "slide": str(data.get("slide", "")),
+                         "seconds": seconds}
+            except (ValueError, KeyError, TypeError):
+                return self.send(400, b"Bad request")
+            TIME_LOG.parent.mkdir(parents=True, exist_ok=True)
+            with TIME_LOG.open("a") as log:
+                log.write(json.dumps(entry) + "\n")
+            return self.send(200, b"{}", "application/json")
         if self.path != "/api/answer":
             return self.send(404, b"Not found")
         try:
