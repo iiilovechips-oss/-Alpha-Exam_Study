@@ -56,6 +56,9 @@ h1 {{ font-size:1.5rem; margin:0 0 4px; }}
 .focus button {{ font:inherit; margin-top:10px; padding:6px 12px; border-radius:8px; border:1px solid var(--line);
                  background:var(--bg); color:var(--ink); cursor:pointer; }}
 body.only-high .slide:not(.high) {{ display:none; }}
+.slide .ask {{ grid-column:1 / -1; border-top:none; padding:0; }}
+.slide .ask .text {{ font-weight:400; }}
+.slide.hidden-answer > img, .slide.hidden-answer > .note {{ display:none; }}
 .check {{ background:var(--card); border:1px solid var(--line); border-left:5px solid var(--accent);
           border-radius:10px; padding:16px 20px; margin-top:28px; }}
 .check h2 {{ margin:0 0 4px; font-size:1.15rem; color:var(--accent); }}
@@ -128,7 +131,8 @@ SCRIPT = """<script>
       });
     });
     var show = box.querySelector('.show');
-    if (show) show.addEventListener('click', function () { box.classList.add('open'); show.disabled = true; });
+    function unhide() { var sec = box.closest('.slide'); if (sec) sec.classList.remove('hidden-answer'); }
+    if (show) show.addEventListener('click', function () { box.classList.add('open'); show.disabled = true; unhide(); });
     box.querySelectorAll('.grade button').forEach(function (b) {
       b.addEventListener('click', function () {
         box.querySelectorAll('.grade button').forEach(function (x) { x.classList.remove('picked'); });
@@ -138,7 +142,7 @@ SCRIPT = """<script>
     });
     if (was) {
       if (was.kind === 'mc') showChoice(box, was.choice);
-      else { box.classList.add('open'); if (show) show.disabled = true;
+      else { box.classList.add('open'); if (show) show.disabled = true; unhide();
              var g = box.querySelector('.grade button[data-outcome="' + was.outcome + '"]'); if (g) g.classList.add('picked'); }
     }
   });
@@ -207,7 +211,18 @@ def build(out: Path) -> Path:
         why = f'<p class="why">{html.escape(note["focus_why"])}</p>' if note and note.get("focus_why") else ""
         if focus == "high":
             high.append(slide["n"])
-        blocks.append(f'<section class="slide {focus}" id="slide-{slide["n"]}"><img loading="lazy" src="slide-{slide["n"]:03}.png" '
+        # A slide that is an exercise or concept check has a "question" in notes.json. The post-lecture slides
+        # print the answer right on the picture, so the picture and explanation are hidden until the user has
+        # tried the question and pressed Reveal. After that they tap how it went, which feeds the progress tracker.
+        ask, hidden = "", ""
+        if note and note.get("question"):
+            hidden = " hidden-answer"
+            ask = (f'<div class="q ask" data-q="slide-{slide["n"]}"><div class="num">Slide {slide["n"]} · Try it first{badge}</div>'
+                   f'<div class="text">{paragraphs(note["question"])}</div>'
+                   '<button class="show">Reveal the slide and the answer</button>'
+                   '<div class="grade">How did you do? <button data-outcome="right">Got it</button>'
+                   '<button data-outcome="partly">Partly</button><button data-outcome="wrong">Missed it</button></div></div>')
+        blocks.append(f'<section class="slide {focus}{hidden}" id="slide-{slide["n"]}">{ask}<img loading="lazy" src="slide-{slide["n"]:03}.png" '
                       f'alt="Slide {slide["n"]}"><div class="note"><div class="num">Slide {slide["n"]}{badge}</div>{why}{body}</div></section>')
     # The box at the top: which slides matter most, with links to jump to them and a switch to hide the rest.
     links = "".join(f'<a href="#slide-{n}">Slide {n}</a>' for n in high)

@@ -113,7 +113,8 @@ def decks(events: list[dict]) -> list[dict]:
         found.append({"course": course, "deck": deck,
                       "topic": Path(json.loads(slides_file.read_text())["deck"]).parts[1],
                       "slides": len(json.loads(slides_file.read_text())["slides"]),
-                      "explained": len(notes.get("slides", {})), "questions": len(notes.get("check", [])),
+                      "explained": len(notes.get("slides", {})),
+                      "questions": len(notes.get("check", [])) + sum(1 for s in notes.get("slides", {}).values() if s.get("question")),
                       "answered": len(answered), "url": f"/explained/{course}/{deck}/index.html"})
     return found
 

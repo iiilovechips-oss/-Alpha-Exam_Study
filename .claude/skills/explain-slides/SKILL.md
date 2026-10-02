@@ -66,6 +66,17 @@ Decks are long, so tell the user where to spend their time. Each slide in `notes
 - Keep high focus to roughly a third of the deck or less. If everything is marked, nothing is.
 The page shows a badge on each marked slide, a list of the high-focus slides at the top, and a button to hide the rest.
 
+## Hide the answers on exercise slides
+Post-lecture decks print the answer on the slide, so a concept check or in-class exercise gives itself away.
+For every slide that is a concept check, in-class exercise or worked problem, add a `"question"` to that
+slide in `notes.json`:
+- Start with one line naming the concept being checked ("Concept: ..."), then restate the slide's question
+  with all the numbers needed to answer it, so it can be done without seeing the slide.
+- If a page holds two questions, number them.
+- If the slide is multiple choice, include the choices.
+The page then shows only the question and a "Reveal the slide and the answer" button. The picture and the
+explanation stay hidden until the user presses it, and afterwards they tap Got it / Partly / Missed it.
+
 ## End-of-deck check questions
 Every finished deck gets a `check` list in `notes.json`. The page shows it at the bottom with answers hidden
 until clicked. The aim is exam preparation: the user should meet questions like these on the real exam.
