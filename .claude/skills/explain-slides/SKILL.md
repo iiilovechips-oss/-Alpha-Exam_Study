@@ -40,7 +40,7 @@ at `study.toml` and today's date:
 2. Read `slides.json`. For any slide whose text is empty or thin (charts, diagrams, formulas), open its
    `slide-NNN.png` and look at it before writing about it.
 3. Write `notes.json` in the same folder:
-   `{"story": "...", "slides": {"1": {"title": "...", "explain": "...", "terms": {"word": "meaning"}}}}`.
+   `{"story": "...", "slides": {"1": {"title": "...", "explain": "...", "terms": {"word": "meaning"}}}, "check": [...]}`.
    If `notes.json` already exists, add to it; do not rewrite slides that are already explained.
 4. Run the same command again to rebuild `index.html`, then open it for the user with `open`.
 
@@ -54,6 +54,18 @@ at `study.toml` and today's date:
 - For worked examples and formulas, walk through the steps in words and check any arithmetic with a
   script before stating it.
 - For housekeeping slides (reminders, road maps), one sentence is enough; say it is not exam content.
+
+## End-of-deck check questions
+Every finished deck gets a `check` list in `notes.json`:
+`"check": [{"q": "...", "a": "...", "slide": 12}]`. The page shows them at the bottom with the answers hidden
+until clicked. They test whether the user understood the deck, so:
+- Write 6 to 8 questions that together cover the whole deck, in the order the deck teaches.
+- Mix "say it in your own words" questions with small calculations or journal entries. Use new numbers
+  and new scenarios, not the ones on the slides.
+- Every question must be answerable from this deck alone. Give the slide to reread in `slide`.
+- Answers are short and in the same easy wording, with the steps shown for anything calculated.
+- Check every number with a script before writing it.
+- Match the difficulty to the user's level in `study/LEVELS.md`.
 
 ## Easy wording rules
 - Short sentences. Common words. Write the way you would explain it to a friend outside the class.

@@ -3,6 +3,10 @@
 Read `PLAN.md` first: it holds the full plan, the user's decisions, the current state and the next steps.
 Keep it up to date when features are added or priorities change.
 
+**Standing rule:** whenever the user suggests a new feature or a change to how something should work, add it to
+`PLAN.md` in the same turn (under decisions, features built, open items or parked ideas, whichever fits), even
+if it is not built yet.
+
 Pulls class files from Canvas into `materials/<COURSE>/<module>/`. Weekly command: `uv run canvas-sync update` (sync + export);
 each run writes a checklist to `reports/`. Videos are skipped (listed in the report, not downloaded). `state.db` tracks what has been downloaded.
 
