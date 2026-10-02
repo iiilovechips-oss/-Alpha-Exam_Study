@@ -25,6 +25,8 @@ Tests: `uv run pytest`.
 - `uv run canvas-sync calendar` writes `study/calendar.ics` (exams only); `digest` shows new material and what is due soon.
 - `uv run canvas-sync explain "<deck>"` renders a PDF deck into `study/explained/<course>/<deck>/` and builds
   `index.html`: each slide beside a plain-language explanation from `notes.json` (written by the `explain-slides` skill).
+- `uv run canvas-sync study` serves the dashboard and study pages on port 8765 and records each tapped answer in
+  `study/progress.jsonl`; `uv run canvas-sync progress` prints readiness. The formula is at the top of `canvas_sync/progress.py`.
 - Skills: `quiz` (interactive practice quiz) and `big-question` (new long multi-part problem with a
   verified solution). Generated problems go in `study/generated/`.
 

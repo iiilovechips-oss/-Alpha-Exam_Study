@@ -12,6 +12,7 @@ from canvas_sync.export import MATERIALS, ROOT
 
 EXPLAINED = ROOT / "study" / "explained"
 IMAGE_WIDTH = 1100
+LETTERS = "ABCDEFGH"
 
 PAGE = """<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
@@ -44,21 +45,91 @@ h1 {{ font-size:1.5rem; margin:0 0 4px; }}
 .check {{ background:var(--card); border:1px solid var(--line); border-left:5px solid var(--accent);
           border-radius:10px; padding:16px 20px; margin-top:28px; }}
 .check h2 {{ margin:0 0 4px; font-size:1.15rem; color:var(--accent); }}
-.check details {{ border-top:1px solid var(--line); padding:10px 0; }}
-.check summary {{ cursor:pointer; font-weight:600; }}
-.check .answer {{ margin:8px 0 0 18px; }}
-.check .options {{ margin:8px 0 0 4px; }}
-.check details[open] summary {{ margin-bottom:4px; }}
-.check .from {{ color:var(--soft); font-size:.85rem; }}
+.q {{ border-top:1px solid var(--line); padding:14px 0; }}
+.q .text {{ font-weight:600; margin:0 0 8px; }}
+.q button {{ font:inherit; color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:8px;
+            padding:8px 12px; margin:4px 6px 4px 0; cursor:pointer; text-align:left; }}
+.q .opt {{ display:block; width:100%; }}
+.q button:hover:not(:disabled) {{ border-color:var(--accent); }}
+.q button.right {{ border-color:#2e8b57; background:rgba(46,139,87,.16); }}
+.q button.wrong {{ border-color:#c0392b; background:rgba(192,57,43,.14); }}
+.q button.picked {{ border-color:var(--accent); background:var(--term); }}
+.q .answer {{ display:none; margin:10px 0 0; padding:10px 14px; background:var(--term); border-radius:8px; }}
+.q.open .answer {{ display:block; }}
+.q .grade {{ display:none; margin-top:8px; }}
+.q.open .grade {{ display:block; }}
+.q .from {{ color:var(--soft); font-size:.85rem; margin-top:6px; }}
+.score {{ color:var(--soft); margin:6px 0 0; }}
+.home {{ display:inline-block; margin-bottom:12px; color:var(--accent); text-decoration:none; }}
 @media (max-width:820px) {{ .slide {{ grid-template-columns:1fr; }} }}
-</style></head><body><main>
+</style></head><body data-course="{course}" data-deck="{title}" data-topic="{topic}"><main>
+<a class="home" href="/">&larr; Progress dashboard</a>
 <h1>{title}</h1>
 <p class="sub">{course} · {done} of {total} slides explained in plain words</p>
 {story}
 {slides}
 {check}
-</main></body></html>
+</main>{script}</body></html>
 """
+
+
+SCRIPT = """<script>
+(function () {
+  var body = document.body.dataset;
+  var KEY = 'canvas-sync:' + body.course + '/' + body.deck;
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
+  var served = location.protocol.indexOf('http') === 0;
+  if (!served) { var home = document.querySelector('.home'); if (home) home.style.display = 'none'; }
+
+  function record(q, kind, outcome, choice) {
+    saved[q] = {kind: kind, outcome: outcome, choice: choice};
+    try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+    if (served) fetch('/api/answer', {method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({course: body.course, deck: body.deck, topic: body.topic, q: q, kind: kind, outcome: outcome})});
+    tally();
+  }
+  function tally() {
+    var all = document.querySelectorAll('.q').length, done = Object.keys(saved).length, pts = 0;
+    Object.keys(saved).forEach(function (k) { pts += {right: 1, partly: 0.5, wrong: 0}[saved[k].outcome]; });
+    var el = document.querySelector('.score');
+    if (el) el.textContent = done ? 'Answered ' + done + ' of ' + all + ' \u00b7 score ' + pts + ' / ' + done : '';
+  }
+  function showChoice(box, choice) {
+    var correct = Number(box.dataset.correct);
+    box.querySelectorAll('.opt').forEach(function (b, i) {
+      b.disabled = true;
+      if (i === correct) b.classList.add('right');
+      else if (i === choice) b.classList.add('wrong');
+    });
+    box.classList.add('open');
+  }
+  document.querySelectorAll('.q').forEach(function (box) {
+    var q = box.dataset.q, was = saved[q];
+    box.querySelectorAll('.opt').forEach(function (b, i) {
+      b.addEventListener('click', function () {
+        showChoice(box, i);
+        record(q, 'mc', i === Number(box.dataset.correct) ? 'right' : 'wrong', i);
+      });
+    });
+    var show = box.querySelector('.show');
+    if (show) show.addEventListener('click', function () { box.classList.add('open'); show.disabled = true; });
+    box.querySelectorAll('.grade button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        box.querySelectorAll('.grade button').forEach(function (x) { x.classList.remove('picked'); });
+        b.classList.add('picked');
+        record(q, 'self', b.dataset.outcome);
+      });
+    });
+    if (was) {
+      if (was.kind === 'mc') showChoice(box, was.choice);
+      else { box.classList.add('open'); if (show) show.disabled = true;
+             var g = box.querySelector('.grade button[data-outcome="' + was.outcome + '"]'); if (g) g.classList.add('picked'); }
+    }
+  });
+  tally();
+})();
+</script>"""
 
 
 def find_deck(query: str) -> Path:
@@ -116,18 +187,31 @@ def build(out: Path) -> Path:
              if notes.get("story") else "")
     questions = ""
     for i, item in enumerate(notes.get("check", []), 1):
-        options = "".join(f"<li>{html.escape(o)}</li>" for o in item.get("options", []))
-        questions += (
-            f'<details><summary>{i}. {html.escape(item["q"])}</summary>'
-            + (f'<ol type="A" class="options">{options}</ol>' if options else "")
-            + f'<div class="answer">{paragraphs(item["a"])}'
-            + (f'<div class="from">Why it is likely on the exam: {html.escape(item["seen"])}</div>' if item.get("seen") else "")
-            + (f'<div class="from">To review: slide {item["slide"]}</div>' if item.get("slide") else "")
-            + "</div></details>")
-    check = (f'<div class="check"><h2>Check yourself</h2><p>Exam-style questions on the ideas in this deck, built from what the practice exam and '
-             f'review material test. Work each one out before opening it.</p>{questions}</div>' if questions else "")
+        why = (f'<div class="from">Why it is likely on the exam: {html.escape(item["seen"])}</div>' if item.get("seen") else "")
+        review = f'<div class="from">To review: slide {item["slide"]}</div>' if item.get("slide") else ""
+        answer = f'<div class="answer">{paragraphs(item["a"])}{why}{review}</div>'
+        options = item.get("options", [])
+        if options and item.get("correct") in LETTERS[:len(options)]:
+            # One tap answers it and it grades itself.
+            buttons = "".join(f'<button class="opt">{LETTERS[n]}. {html.escape(o)}</button>' for n, o in enumerate(options))
+            body = f'{buttons}{answer}'
+            attrs = f' data-correct="{LETTERS.index(item["correct"])}"'
+        else:
+            # Worked problem: think it through, reveal, then one tap to say how it went.
+            listed = "".join(f"<li>{html.escape(o)}</li>" for o in options)
+            body = ((f'<ol type="A">{listed}</ol>' if listed else "")
+                    + '<button class="show">Show answer</button>' + answer
+                    + '<div class="grade">How did you do? <button data-outcome="right">Got it</button>'
+                      '<button data-outcome="partly">Partly</button><button data-outcome="wrong">Missed it</button></div>')
+            attrs = ""
+        questions += f'<div class="q" data-q="{i}"{attrs}><p class="text">{i}. {html.escape(item["q"])}</p>{body}</div>'
+    check = (f'<div class="check"><h2>Check yourself</h2><p>Exam-style questions on the ideas in this deck, built from '
+             f'what the practice exam and review material test. Tap an answer, or work the problem and then say how it '
+             f'went. Your results feed the progress dashboard.</p><p class="score"></p>{questions}</div>' if questions else "")
+    topic = Path(json.loads((out / "slides.json").read_text())["deck"]).parts[1]
     page = PAGE.format(title=html.escape(out.name), course=html.escape(out.parent.name), done=len(by_slide),
-                       total=len(slides), story=story, slides="\n".join(blocks), check=check)
+                       total=len(slides), story=story, slides="\n".join(blocks), check=check,
+                       topic=html.escape(topic), script=SCRIPT if questions else "")
     (out / "index.html").write_text(page)
     return out / "index.html"
 

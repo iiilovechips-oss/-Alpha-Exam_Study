@@ -77,6 +77,8 @@ uv run canvas-sync uploaded  # so next week only lists what changed
 | `pack "<exam>"` | Build `study/<exam>/` with only the slides, practice and guides that exam covers |
 | `calendar` | Write `study/calendar.ics` with exam dates |
 | `explain "<deck>"` | Build a study page for one PDF deck: every slide next to a plain-language explanation |
+| `study` | Open the progress dashboard and study pages; one-tap check questions are recorded |
+| `progress` | Print exam readiness and per-topic mastery |
 | `digest` | New material from the last update and what is due in the next two weeks (also printed by `update`) |
 
 Three Claude Code skills in `.claude/skills/` work from the downloaded files: `explain-slides` writes the

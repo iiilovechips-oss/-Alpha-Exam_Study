@@ -131,3 +131,21 @@ def test_big_pdf_is_split_into_parts(tmp_path, monkeypatch):
     names = convert.render(tmp_path / "deck.pdf", tmp_path, "deck.pdf")
     assert len(names) >= 2 and names[0].startswith("deck (part 1 of ")
     assert sum(len(PdfReader(tmp_path / n).pages) for n in names) == 6
+
+
+def test_mastery_starts_at_self_rating_and_follows_the_answers():
+    from canvas_sync.progress import mastery, scored_answers
+    assert mastery(0.4, []) == (0.4, 0.0)
+    score, evidence = mastery(0.0, [(1.0, 1.0)] * 6)          # six tap answers, all right, from a 0% start
+    assert round(score, 2) == 0.75 and evidence == 6.0
+    events = [{"ts": "1", "deck": "d", "q": "1", "kind": "mc", "outcome": "wrong"},
+              {"ts": "2", "deck": "d", "q": "1", "kind": "mc", "outcome": "right"},     # retry: counts half
+              {"ts": "3", "deck": "d", "q": "2", "kind": "self", "outcome": "partly"}]  # self-graded: counts 60%
+    assert sorted(scored_answers(events)) == [(0.5, 0.6), (1.0, 0.5)]
+
+
+def test_readiness_weights_topics_by_their_share_of_the_exam():
+    from canvas_sync.progress import readiness
+    topics = [{"weight": 75, "mastery": 0.4, "evidence": 5.0}, {"weight": 25, "mastery": 0.8, "evidence": 0.0}]
+    ready, covered = readiness(topics)
+    assert round(ready, 2) == 0.5 and covered == 0.75

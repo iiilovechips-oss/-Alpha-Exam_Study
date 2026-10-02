@@ -10,6 +10,12 @@ hours = 1.5               # optional length, default 1.5
 where = "CIF 3039"        # optional
 covers = ["^Day 1[2-8] "]
 
+# Optional: how much of the exam each topic is (any scale). Needed for the readiness estimate.
+# Names must match the start of the topic's folder in materials/<course>/.
+[exam.weights]
+"Day 12" = 50
+"Day 13" = 50
+
 [[deadline]]
 course = "PSYC 475"
 name = "Assignment 2 due"

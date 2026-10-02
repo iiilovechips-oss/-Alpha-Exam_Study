@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "study",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": ["run", "canvas-sync", "study"],
+      "port": 8765
+    }
+  ]
+}

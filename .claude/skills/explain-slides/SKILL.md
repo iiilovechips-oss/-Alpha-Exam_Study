@@ -42,7 +42,9 @@ at `study.toml` and today's date:
 3. Write `notes.json` in the same folder:
    `{"story": "...", "slides": {"1": {"title": "...", "explain": "...", "terms": {"word": "meaning"}}}, "check": [...]}`.
    If `notes.json` already exists, add to it; do not rewrite slides that are already explained.
-4. Run the same command again to rebuild `index.html`, then open it for the user with `open`.
+4. Run the same command again to rebuild `index.html`. Tell the user to open it through the dashboard
+   (`uv run canvas-sync study`, then http://127.0.0.1:8765), because answers are only recorded when the page is
+   served that way. Opening the file directly still works for reading.
 
 ## What to write
 - `story`: three short paragraphs covering what the deck is about, the order it goes in, and the one
@@ -59,8 +61,15 @@ at `study.toml` and today's date:
 Every finished deck gets a `check` list in `notes.json`. The page shows it at the bottom with answers hidden
 until clicked. The aim is exam preparation: the user should meet questions like these on the real exam.
 
-`"check": [{"q": "...", "options": ["...", "..."], "a": "...", "seen": "...", "slide": 12}]`
-(`options` only for multiple choice; `seen` and `slide` are optional.)
+`"check": [{"q": "...", "options": ["...", "..."], "correct": "B", "a": "...", "seen": "...", "slide": 12}]`
+
+- A multiple-choice item needs `options` and `correct` (the letter). On the page the user taps an option and
+  it grades itself. This is the preferred kind: it takes one tap and the result is objective.
+- An item without `options` is a worked problem: the user reveals the answer and taps Got it / Partly /
+  Missed it. Use these for journal entries and multi-step calculations, where the exam does too.
+- Aim for at least half tap-to-answer items, and never require typing. The user will not write out answers,
+  and the progress tracker (`canvas_sync/progress.py`) only learns from taps.
+- `seen` and `slide` are optional.
 
 **Find out what gets tested before writing.** Read the course's practice exam, exam review deck, study guide,
 in-class exercises and any homework or quiz pages for the same chapter. Note which ideas they test, in what
