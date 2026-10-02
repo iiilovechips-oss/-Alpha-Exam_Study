@@ -68,14 +68,25 @@ The page shows a badge on each marked slide, a list of the high-focus slides at 
 
 ## Hide the answers on exercise slides
 Post-lecture decks print the answer on the slide, so a concept check or in-class exercise gives itself away.
-For every slide that is a concept check, in-class exercise or worked problem, add a `"question"` to that
-slide in `notes.json`:
-- Start with one line naming the concept being checked ("Concept: ..."), then restate the slide's question
-  with all the numbers needed to answer it, so it can be done without seeing the slide.
-- If a page holds two questions, number them.
-- If the slide is multiple choice, include the choices.
-The page then shows only the question and a "Reveal the slide and the answer" button. The picture and the
-explanation stay hidden until the user presses it, and afterwards they tap Got it / Partly / Missed it.
+For every slide that is a concept check, in-class exercise or worked problem, add two things to that slide in
+`notes.json`:
+
+- `"question"`: one line naming the concept being checked ("Concept being checked: ..."). Do not retype the
+  question; the user wants to see it in the slide's own format.
+- `"ask"`: where to find the answer-free version of the slide, so the page can show it as a picture:
+  `[{"file": "<course>/<folder>/<Pre-lecture deck>.pdf", "page": 9, "part": "top", "cover_from": 0.53}]`
+  - `file` is relative to `materials/`. Use the pre-lecture version of the deck when there is one, since it
+    has the questions without the answers. Leave `file` out to take the slide from this deck (for example when
+    the question is the top slide and the solution is the bottom slide).
+  - `page` and `part` ("top" or "bottom"): which slide on the two-per-page handout. Page numbers in the
+    pre-lecture deck often differ from the post-lecture deck; match slides by their text.
+  - `cover_from` (0 to 1): paint the slide white from that height down, for slides that show the answer under
+    the question even in the pre-lecture version.
+  - A page with two question slides gets two entries.
+- After rebuilding, look at the generated `ask-*.png` files to confirm no answer is visible.
+
+The page shows the concept line, the question slide(s) and a "Reveal the slide and the answer" button. The
+answered slide and the explanation stay hidden until the user presses it; then they tap Got it / Partly / Missed it.
 
 ## End-of-deck check questions
 Every finished deck gets a `check` list in `notes.json`. The page shows it at the bottom with answers hidden

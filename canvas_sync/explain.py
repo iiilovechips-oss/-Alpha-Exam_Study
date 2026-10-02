@@ -58,6 +58,7 @@ h1 {{ font-size:1.5rem; margin:0 0 4px; }}
 body.only-high .slide:not(.high) {{ display:none; }}
 .slide .ask {{ grid-column:1 / -1; border-top:none; padding:0; }}
 .slide .ask .text {{ font-weight:400; }}
+.slide .ask .askimg {{ display:block; max-width:760px; width:100%; margin:8px 0 12px; }}
 .slide.hidden-answer > img, .slide.hidden-answer > .note {{ display:none; }}
 .check {{ background:var(--card); border:1px solid var(--line); border-left:5px solid var(--accent);
           border-radius:10px; padding:16px 20px; margin-top:28px; }}
@@ -185,13 +186,46 @@ def prepare(deck: Path) -> Path:
     return out
 
 
+def slide_frames(page):
+    """The top and bottom slide boxes on a handout page (two slides per page)."""
+    import pymupdf as fitz
+
+    boxes = sorted((d["rect"] for d in page.get_drawings()
+                    if 300 < d["rect"].width < page.rect.width * 0.9 and d["rect"].height > 200), key=lambda r: r.y0)
+    if len(boxes) >= 2 and boxes[-1].y0 > boxes[0].y1:
+        return boxes[0], boxes[-1]
+    w, h = page.rect.width, page.rect.height  # usual handout layout, used when the boxes cannot be found
+    return fitz.Rect(0.108 * w, 0.119 * h, 0.892 * w, 0.46 * h), fitz.Rect(0.108 * w, 0.54 * h, 0.892 * w, 0.881 * h)
+
+
+def render_question(out: Path, name: str, spec: dict, deck: str) -> None:
+    """Save one slide as a picture, exactly as the professor drew it, to use as the question.
+
+    `spec` says where the question slide is: which file (default: this deck), which page, and whether it is
+    the top or bottom slide on that page. `cover_from` (0 to 1) paints the slide white from that height down,
+    for slides that print the answer underneath the question.
+    """
+    import pymupdf as fitz
+
+    with fitz.open(MATERIALS / spec.get("file", deck)) as doc:
+        page = doc[spec["page"] - 1]
+        top, bottom = slide_frames(page)
+        frame = top if spec.get("part", "top") == "top" else bottom
+        if spec.get("cover_from"):
+            hide = fitz.Rect(frame.x0 + 2, frame.y0 + frame.height * spec["cover_from"], frame.x1 - 2, frame.y1 - 2)
+            page.draw_rect(hide, color=(1, 1, 1), fill=(1, 1, 1))
+        zoom = IMAGE_WIDTH / frame.width
+        page.get_pixmap(matrix=fitz.Matrix(zoom, zoom), clip=frame + (-3, -3, 3, 3)).save(out / name)
+
+
 def paragraphs(text: str) -> str:
     return "".join(f"<p>{html.escape(part.strip())}</p>" for part in text.split("\n\n") if part.strip())
 
 
 def build(out: Path) -> Path:
     """Write index.html from the slide images and whatever is in notes.json so far."""
-    slides = json.loads((out / "slides.json").read_text())["slides"]
+    deck_info = json.loads((out / "slides.json").read_text())
+    slides, deck_path = deck_info["slides"], deck_info["deck"]
     notes_file = out / "notes.json"
     notes = json.loads(notes_file.read_text()) if notes_file.exists() else {}
     by_slide = notes.get("slides", {})
@@ -217,8 +251,13 @@ def build(out: Path) -> Path:
         ask, hidden = "", ""
         if note and note.get("question"):
             hidden = " hidden-answer"
+            pictures = ""
+            for i, spec in enumerate(note.get("ask", []), 1):
+                name = f'ask-{slide["n"]:03}-{i}.png'
+                render_question(out, name, spec, deck_path)
+                pictures += f'<img class="askimg" src="{name}" alt="Question for slide {slide["n"]}">'
             ask = (f'<div class="q ask" data-q="slide-{slide["n"]}"><div class="num">Slide {slide["n"]} · Try it first{badge}</div>'
-                   f'<div class="text">{paragraphs(note["question"])}</div>'
+                   f'<div class="text">{paragraphs(note["question"])}</div>{pictures}'
                    '<button class="show">Reveal the slide and the answer</button>'
                    '<div class="grade">How did you do? <button data-outcome="right">Got it</button>'
                    '<button data-outcome="partly">Partly</button><button data-outcome="wrong">Missed it</button></div></div>')
