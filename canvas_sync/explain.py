@@ -42,6 +42,20 @@ h1 {{ font-size:1.5rem; margin:0 0 4px; }}
 .terms div {{ margin:3px 0; }}
 .terms b {{ color:var(--accent); }}
 .empty {{ color:var(--soft); font-style:italic; }}
+.slide.high {{ border-left:6px solid #d08a00; }}
+.slide.skim {{ opacity:.6; }}
+.badge {{ display:inline-block; font-size:.75rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+          padding:2px 8px; border-radius:20px; margin-left:8px; }}
+.badge.high {{ background:#d08a00; color:#fff; }}
+.badge.skim {{ background:var(--line); color:var(--soft); }}
+.why {{ font-size:.9rem; color:var(--soft); margin:0 0 8px; }}
+.focus {{ background:var(--card); border:1px solid var(--line); border-left:6px solid #d08a00; border-radius:10px;
+          padding:14px 20px; margin-bottom:24px; }}
+.focus h2 {{ margin:0 0 6px; font-size:1.05rem; }}
+.focus a {{ color:var(--accent); margin-right:10px; white-space:nowrap; }}
+.focus button {{ font:inherit; margin-top:10px; padding:6px 12px; border-radius:8px; border:1px solid var(--line);
+                 background:var(--bg); color:var(--ink); cursor:pointer; }}
+body.only-high .slide:not(.high) {{ display:none; }}
 .check {{ background:var(--card); border:1px solid var(--line); border-left:5px solid var(--accent);
           border-radius:10px; padding:16px 20px; margin-top:28px; }}
 .check h2 {{ margin:0 0 4px; font-size:1.15rem; color:var(--accent); }}
@@ -67,6 +81,7 @@ h1 {{ font-size:1.5rem; margin:0 0 4px; }}
 <h1>{title}</h1>
 <p class="sub">{course} · {done} of {total} slides explained in plain words</p>
 {story}
+{focus}
 {slides}
 {check}
 </main>{script}</body></html>
@@ -128,6 +143,11 @@ SCRIPT = """<script>
     }
   });
   tally();
+  var toggle = document.getElementById('only-high');
+  if (toggle) toggle.addEventListener('click', function () {
+    var on = document.body.classList.toggle('only-high');
+    toggle.textContent = on ? 'Show all slides' : 'Show only high-focus slides';
+  });
 })();
 </script>"""
 
@@ -171,7 +191,7 @@ def build(out: Path) -> Path:
     notes_file = out / "notes.json"
     notes = json.loads(notes_file.read_text()) if notes_file.exists() else {}
     by_slide = notes.get("slides", {})
-    blocks = []
+    blocks, high = [], []
     for slide in slides:
         note = by_slide.get(str(slide["n"]))
         if note:
@@ -181,8 +201,18 @@ def build(out: Path) -> Path:
                     + (f'<div class="terms">{terms}</div>' if terms else ""))
         else:
             body = '<p class="empty">No explanation yet.</p>'
-        blocks.append(f'<section class="slide"><img loading="lazy" src="slide-{slide["n"]:03}.png" '
-                      f'alt="Slide {slide["n"]}"><div class="note"><div class="num">Slide {slide["n"]}</div>{body}</div></section>')
+        # "focus" in notes.json is "high" (study this closely) or "skim" (safe to glance at). Anything else is normal.
+        focus = (note or {}).get("focus", "")
+        badge = {"high": '<span class="badge high">High focus</span>', "skim": '<span class="badge skim">Skim</span>'}.get(focus, "")
+        why = f'<p class="why">{html.escape(note["focus_why"])}</p>' if note and note.get("focus_why") else ""
+        if focus == "high":
+            high.append(slide["n"])
+        blocks.append(f'<section class="slide {focus}" id="slide-{slide["n"]}"><img loading="lazy" src="slide-{slide["n"]:03}.png" '
+                      f'alt="Slide {slide["n"]}"><div class="note"><div class="num">Slide {slide["n"]}{badge}</div>{why}{body}</div></section>')
+    # The box at the top: which slides matter most, with links to jump to them and a switch to hide the rest.
+    links = "".join(f'<a href="#slide-{n}">Slide {n}</a>' for n in high)
+    focus_box = (f'<div class="focus"><h2>If you are short on time: {len(high)} of {len(slides)} slides matter most</h2>'
+                 f'<div>{links}</div><button id="only-high">Show only high-focus slides</button></div>' if high else "")
     story = (f'<div class="story"><h2>The whole story in plain words</h2>{paragraphs(notes["story"])}</div>'
              if notes.get("story") else "")
     questions = ""
@@ -210,8 +240,8 @@ def build(out: Path) -> Path:
              f'went. Your results feed the progress dashboard.</p><p class="score"></p>{questions}</div>' if questions else "")
     topic = Path(json.loads((out / "slides.json").read_text())["deck"]).parts[1]
     page = PAGE.format(title=html.escape(out.name), course=html.escape(out.parent.name), done=len(by_slide),
-                       total=len(slides), story=story, slides="\n".join(blocks), check=check,
-                       topic=html.escape(topic), script=SCRIPT if questions else "")
+                       total=len(slides), story=story, focus=focus_box, slides="\n".join(blocks), check=check,
+                       topic=html.escape(topic), script=SCRIPT)
     (out / "index.html").write_text(page)
     return out / "index.html"
 

@@ -57,6 +57,15 @@ at `study.toml` and today's date:
   script before stating it.
 - For housekeeping slides (reminders, road maps), one sentence is enough; say it is not exam content.
 
+## Mark which slides matter most
+Decks are long, so tell the user where to spend their time. Each slide in `notes.json` can carry
+`"focus": "high"` or `"focus": "skim"`, plus a one-sentence `"focus_why"`. Unmarked slides are normal.
+- **high:** the slide teaches something the exam evidence shows is tested (practice exam, review class, study
+  guide), or it is a full worked problem of an exam type. Say which in `focus_why`.
+- **skim:** title slides, goals, reminders, news stories, repeats of an earlier chart.
+- Keep high focus to roughly a third of the deck or less. If everything is marked, nothing is.
+The page shows a badge on each marked slide, a list of the high-focus slides at the top, and a button to hide the rest.
+
 ## End-of-deck check questions
 Every finished deck gets a `check` list in `notes.json`. The page shows it at the bottom with answers hidden
 until clicked. The aim is exam preparation: the user should meet questions like these on the real exam.
