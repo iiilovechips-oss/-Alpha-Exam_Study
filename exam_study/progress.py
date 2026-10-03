@@ -288,8 +288,16 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def serve() -> None:
-    server = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
     url = f"http://127.0.0.1:{PORT}/"
+    try:
+        server = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
+    except OSError:
+        # Something is already using the port. Almost always that is the dashboard, started earlier in
+        # another terminal tab, so just open it instead of failing.
+        print(f"The dashboard is already running at {url} - opening it.\n"
+              "(If that page does not load, another program is using port 8765; close it and try again.)")
+        webbrowser.open(url)
+        return
     print(f"Study dashboard at {url}  (Ctrl+C to stop)")
     webbrowser.open(url)
     try:
