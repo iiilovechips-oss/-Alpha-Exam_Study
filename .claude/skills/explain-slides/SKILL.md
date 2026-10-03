@@ -82,6 +82,8 @@ For every slide that is a concept check, in-class exercise or worked problem, ad
     pre-lecture deck often differ from the post-lecture deck; match slides by their text.
   - `cover_from` (0 to 1): paint the slide white from that height down, for slides that show the answer under
     the question even in the pre-lecture version.
+  - `covers`: a list of boxes to paint white, each `[left, top, right, bottom]` as fractions of the slide, for
+    answers that sit beside the question rather than under it (for example a filled-in T-account).
   - A page with two question slides gets two entries.
 - After rebuilding, look at the generated `ask-*.png` files to confirm no answer is visible.
 

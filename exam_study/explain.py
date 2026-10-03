@@ -263,7 +263,7 @@ def render_question(out: Path, name: str, spec: dict, deck: str) -> None:
 
     `spec` says where the question slide is: which file (default: this deck), which page, and whether it is
     the top or bottom slide on that page. `cover_from` (0 to 1) paints the slide white from that height down,
-    for slides that print the answer underneath the question.
+    for slides that print the answer underneath the question. `covers` paints any other boxes white.
     """
     import pymupdf as fitz
 
@@ -271,8 +271,14 @@ def render_question(out: Path, name: str, spec: dict, deck: str) -> None:
         page = doc[spec["page"] - 1]
         top, bottom = slide_frames(page)
         frame = top if spec.get("part", "top") == "top" else bottom
+        # Areas to paint white, as fractions of the slide: (left, top, right, bottom).
+        # "cover_from" is the simple case: everything from that height down.
+        areas = [tuple(a) for a in spec.get("covers", [])]
         if spec.get("cover_from"):
-            hide = fitz.Rect(frame.x0 + 2, frame.y0 + frame.height * spec["cover_from"], frame.x1 - 2, frame.y1 - 2)
+            areas.append((0, spec["cover_from"], 1, 1))
+        for left, top_, right, bottom_ in areas:
+            hide = fitz.Rect(frame.x0 + frame.width * left, frame.y0 + frame.height * top_,
+                             frame.x0 + frame.width * right, frame.y0 + frame.height * bottom_) & (frame + (2, 2, -2, -2))
             page.draw_rect(hide, color=(1, 1, 1), fill=(1, 1, 1))
         zoom = IMAGE_WIDTH / frame.width
         page.get_pixmap(matrix=fitz.Matrix(zoom, zoom), clip=frame + (-3, -3, 3, 3)).save(out / name)
