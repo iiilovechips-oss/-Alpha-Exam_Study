@@ -226,7 +226,18 @@ def find_deck(query: str) -> Path:
 
 
 def deck_dir(deck: Path) -> Path:
-    return EXPLAINED / deck.relative_to(MATERIALS).parts[0] / deck.stem
+    """The study page folder for a deck: study/explained/<course>/<deck name>.
+
+    Two decks in different chapters can have the same file name (both chapters had a "Lecture Sept 16").
+    If the plain name is already taken by another deck, the chapter is added: "<deck name> (Chapter 7)".
+    """
+    rel = deck.relative_to(MATERIALS)
+    plain = EXPLAINED / rel.parts[0] / deck.stem
+    taken = plain / "slides.json"
+    if taken.exists() and json.loads(taken.read_text())["deck"] != str(rel):
+        chapter = rel.parts[1].split("-")[0].strip() if len(rel.parts) > 2 else rel.parts[1]
+        return EXPLAINED / rel.parts[0] / f"{deck.stem} ({chapter})"
+    return plain
 
 
 def prepare(deck: Path) -> Path:
