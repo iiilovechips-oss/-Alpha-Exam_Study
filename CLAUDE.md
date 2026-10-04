@@ -18,6 +18,7 @@ it writes an ACTION NEEDED reminder to the report instead of failing.
 readings; no cases, graded work or page text; Excel converted to Markdown, files over 8 MB split into parts) for uploading to NotebookLM. Filter rules are at the top of
 `exam_study/export.py`. `notebooklm/_new/` holds only files not yet uploaded; `exam-study uploaded` marks them done.
 Tests: `uv run pytest`.
+On the user's Mac a LaunchAgent starts `scripts/auto_update.sh` once a day; the script runs `update` every two days.
 
 ## Study features
 `study.toml` lists exams (with the material each one covers) and deadlines.
