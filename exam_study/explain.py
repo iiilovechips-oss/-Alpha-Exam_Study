@@ -9,85 +9,137 @@ import json
 from pathlib import Path
 
 from exam_study.export import MATERIALS, ROOT
+from exam_study.themes import NAMES, THEMES, TOKENS
 
 EXPLAINED = ROOT / "study" / "explained"
 IMAGE_WIDTH = 1100
 LETTERS = "ABCDEFGH"
 
+# The look of a study page. The colours come from themes.py (shared with the dashboard's themes), so this
+# template only says where things go: a bar that stays on top, the summary, the "short on time" box, then
+# each slide with its picture on the left and the plain-words explanation on the right, then the questions.
 PAGE = """<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{title}</title>
-<style>
-:root {{ --bg:#f6f5f1; --card:#fff; --ink:#1d1d1f; --soft:#5b5b63; --line:#dedcd5; --accent:#2f5d8a; --term:#eef3f8; }}
-@media (prefers-color-scheme: dark) {{
-  :root {{ --bg:#17181b; --card:#22242a; --ink:#ececee; --soft:#a5a7b0; --line:#34363d; --accent:#8fb8e0; --term:#2a3038; }}
-}}
+<title>{heading}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500;600&display=swap">
+<style>{theme_css}
 * {{ box-sizing:border-box; }}
-body {{ margin:0; background:var(--bg); color:var(--ink); font:17px/1.6 -apple-system, "Segoe UI", sans-serif; }}
-main {{ max-width:1280px; margin:0 auto; padding:24px 16px 80px; }}
-h1 {{ font-size:1.5rem; margin:0 0 4px; }}
-.sub {{ color:var(--soft); margin:0 0 20px; }}
-.story {{ background:var(--card); border:1px solid var(--line); border-left:5px solid var(--accent);
-          border-radius:10px; padding:16px 20px; margin-bottom:28px; }}
-.story h2 {{ margin:0 0 6px; font-size:1.05rem; color:var(--accent); }}
-.story p {{ margin:0 0 8px; }}
-.slide {{ display:grid; grid-template-columns:minmax(0,3fr) minmax(0,2fr); gap:20px; align-items:start;
-          background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; margin-bottom:20px; }}
-.slide img {{ width:100%; height:auto; border:1px solid var(--line); border-radius:6px; background:#fff; }}
-.num {{ font-size:.8rem; letter-spacing:.06em; text-transform:uppercase; color:var(--soft); }}
-.note h3 {{ margin:2px 0 8px; font-size:1.1rem; }}
-.note p {{ margin:0 0 10px; }}
-.terms {{ margin:10px 0 0; padding:10px 14px; background:var(--term); border-radius:8px; font-size:.95rem; }}
-.terms div {{ margin:3px 0; }}
-.terms b {{ color:var(--accent); }}
-.empty {{ color:var(--soft); font-style:italic; }}
-.slide.high {{ border-left:6px solid #d08a00; }}
-.slide.skim {{ opacity:.6; }}
-.badge {{ display:inline-block; font-size:.75rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
-          padding:2px 8px; border-radius:20px; margin-left:8px; }}
-.badge.high {{ background:#d08a00; color:#fff; }}
-.badge.skim {{ background:var(--line); color:var(--soft); }}
-.why {{ font-size:.9rem; color:var(--soft); margin:0 0 8px; }}
-.focus {{ background:var(--card); border:1px solid var(--line); border-left:6px solid #d08a00; border-radius:10px;
-          padding:14px 20px; margin-bottom:24px; }}
-.focus h2 {{ margin:0 0 6px; font-size:1.05rem; }}
-.focus a {{ color:var(--accent); margin-right:10px; white-space:nowrap; }}
-.focus button {{ font:inherit; margin-top:10px; padding:6px 12px; border-radius:8px; border:1px solid var(--line);
-                 background:var(--bg); color:var(--ink); cursor:pointer; }}
+body {{ margin:0; min-height:100dvh; background:var(--page, var(--bg)) fixed; color:var(--ink); font:17px/1.65 var(--font, var(--sans)); -webkit-font-smoothing:antialiased; }}
+a:focus-visible, button:focus-visible, select:focus-visible {{ outline:2px solid var(--primary); outline-offset:3px; border-radius:8px; }}
+.mono {{ font-family:var(--mono); font-variant-numeric:tabular-nums; }}
+
+/* The bar that stays at the top: back to the dashboard, which deck this is, and the theme. The thin
+   coloured line under it grows as you scroll, so you can see how far through the deck you are. */
+.bar {{ position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:14px; padding:10px 20px;
+       background:color-mix(in srgb, var(--bg) 80%, transparent); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); border-bottom:1px solid var(--line); }}
+.bar .where {{ flex:1; min-width:0; color:var(--head-soft, var(--soft)); font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }}
+.home {{ display:inline-flex; align-items:center; min-height:38px; padding:0 14px; border-radius:999px; border:1px solid var(--line); background:var(--card); color:var(--ink); text-decoration:none; font-size:.9rem; font-weight:550; white-space:nowrap; }}
+.home:hover {{ background:var(--muted); }}
+.bar label {{ color:var(--head-soft, var(--soft)); font-size:.84rem; display:flex; align-items:center; gap:8px; }}
+.bar select {{ min-height:38px; padding:0 10px; border-radius:999px; border:1px solid var(--line); background:var(--card); color:var(--ink); font:inherit; font-size:.88rem; cursor:pointer; }}
+.bar::after {{ content:""; position:absolute; left:0; right:0; bottom:-2px; height:2px; background:var(--primary); transform-origin:left; transform:scaleX(0); }}
+@supports (animation-timeline: scroll()) {{
+  .bar::after {{ animation:read linear both; animation-timeline:scroll(root); }}
+  @keyframes read {{ to {{ transform:scaleX(1); }} }}
+}}
+
+main {{ max-width:1240px; margin:0 auto; padding:40px 20px 140px; }}
+.intro {{ margin-bottom:28px; }}
+.intro .label {{ color:var(--head-soft, var(--soft)); font-size:.74rem; font-weight:600; letter-spacing:.09em; text-transform:uppercase; }}
+h1 {{ font-size:clamp(1.7rem, 3.2vw, 2.5rem); font-weight:650; letter-spacing:-.03em; line-height:1.1; margin:6px 0 8px; color:var(--head, var(--ink)); max-width:22em; }}
+.sub {{ color:var(--head-soft, var(--soft)); margin:0; font-size:.95rem; }}
+
+.panel, .story, .focus, .slide, .check {{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); }}
+.story {{ padding:26px 28px; margin-bottom:16px; }}
+.story h2, .focus h2, .check h2 {{ margin:0 0 10px; font-size:1.05rem; font-weight:600; letter-spacing:-.01em; }}
+.story p {{ margin:0 0 12px; max-width:74ch; color:var(--ink); }}
+.story p:first-of-type {{ font-size:1.08rem; }}
+.story p:last-child {{ margin-bottom:0; }}
+
+/* "Short on time" box: the high-focus slides as chips you can jump to, and a switch to hide the rest. */
+.focus {{ padding:20px 28px; margin-bottom:28px; border-left:3px solid var(--mid); }}
+.focus div {{ display:flex; flex-wrap:wrap; gap:8px; }}
+.focus a {{ display:inline-flex; align-items:center; min-height:34px; padding:0 12px; border-radius:999px; background:var(--muted); border:1px solid var(--line); color:var(--ink); text-decoration:none; font-size:.86rem; font-family:var(--mono); }}
+.focus a:hover {{ border-color:var(--mid); }}
+.focus button {{ margin-top:14px; }}
 body.only-high .slide:not(.high) {{ display:none; }}
-.timer {{ position:fixed; right:16px; bottom:16px; z-index:10; background:var(--card); color:var(--ink);
-          border:1px solid var(--line); border-radius:999px; padding:8px 14px; font-size:.9rem;
-          box-shadow:0 2px 10px rgba(0,0,0,.18); font-variant-numeric:tabular-nums; }}
-.timer.paused {{ opacity:.55; }}
+
+/* One slide: the picture on the left, the plain-words explanation on the right. */
+.slide {{ display:grid; grid-template-columns:minmax(0, 3fr) minmax(0, 2fr); gap:28px; align-items:start; padding:22px; margin-bottom:16px; scroll-margin-top:72px; }}
+.pic {{ margin:0; }}
+.pic img, .askimg {{ display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:10px; background:#fff; }}
+.num {{ font:500 .76rem/1.4 var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--soft); display:flex; align-items:center; gap:10px; flex-wrap:wrap; }}
+.note h3 {{ margin:8px 0 10px; font-size:1.28rem; font-weight:600; letter-spacing:-.018em; line-height:1.25; }}
+.note p {{ margin:0 0 12px; max-width:62ch; white-space:pre-line; }}
+.terms {{ margin-top:18px; padding-top:14px; border-top:1px solid var(--line); font-size:.92rem; }}
+.terms div {{ padding:3px 0; color:var(--soft); }}
+.terms b {{ color:var(--ink); font-weight:600; }}
+.empty {{ color:var(--soft); font-style:italic; }}
+.badge {{ font:600 .7rem/1 var(--sans); letter-spacing:.05em; text-transform:uppercase; padding:5px 9px; border-radius:999px; }}
+.badge.high {{ background:color-mix(in srgb, var(--mid) 18%, transparent); color:var(--mid); }}
+.badge.skim {{ background:var(--muted); color:var(--soft); }}
+.why {{ font-size:.9rem; color:var(--soft); margin:8px 0 0; padding-left:12px; border-left:2px solid var(--mid); max-width:62ch; }}
+.slide.high {{ border-left:3px solid var(--mid); }}
+.slide.skim {{ opacity:.6; transition:opacity .15s ease-out; }} .slide.skim:hover, .slide.skim:focus-within {{ opacity:1; }}
+
+/* A slide that is an exercise: the question first, the slide and its answer only after "Reveal". */
 .slide .ask {{ grid-column:1 / -1; border-top:none; padding:0; }}
 .slide .ask .text {{ font-weight:400; }}
-.slide .ask .askimg {{ display:block; max-width:760px; width:100%; margin:8px 0 12px; }}
-.slide.hidden-answer > img, .slide.hidden-answer > .note {{ display:none; }}
-.check {{ background:var(--card); border:1px solid var(--line); border-left:5px solid var(--accent);
-          border-radius:10px; padding:16px 20px; margin-top:28px; }}
-.check h2 {{ margin:0 0 4px; font-size:1.15rem; color:var(--accent); }}
-.q {{ border-top:1px solid var(--line); padding:14px 0; }}
-.q .text {{ font-weight:600; margin:0 0 8px; }}
-.q button {{ font:inherit; color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:8px;
-            padding:8px 12px; margin:4px 6px 4px 0; cursor:pointer; text-align:left; }}
-.q .opt {{ display:block; width:100%; }}
-.q button:hover:not(:disabled) {{ border-color:var(--accent); }}
-.q button.right {{ border-color:#2e8b57; background:rgba(46,139,87,.16); }}
-.q button.wrong {{ border-color:#c0392b; background:rgba(192,57,43,.14); }}
-.q button.picked {{ border-color:var(--accent); background:var(--term); }}
-.q .answer {{ display:none; margin:10px 0 0; padding:10px 14px; background:var(--term); border-radius:8px; }}
+.slide .ask .text p {{ margin:8px 0 12px; }}
+.slide .ask .askimg {{ max-width:780px; margin:0 0 14px; }}
+.slide.hidden-answer > .pic, .slide.hidden-answer > .note {{ display:none; }}
+
+/* Buttons. One shape everywhere: rounded pills. */
+button {{ font:inherit; }}
+.q button, .focus button {{ min-height:44px; padding:0 16px; border-radius:999px; border:1px solid var(--line); background:var(--muted); color:var(--ink); cursor:pointer; transition:background .15s ease-out, border-color .15s ease-out, transform .15s ease-out; }}
+.q button:hover:not(:disabled), .focus button:hover {{ border-color:var(--primary); }}
+.q button:active:not(:disabled) {{ transform:translateY(1px) scale(.99); }}
+.q .show {{ background:var(--primary); color:var(--on-primary); border-color:var(--primary); font-weight:600; }}
+.q .show:disabled {{ opacity:.45; cursor:default; }}
+.q .grade {{ display:none; margin-top:14px; color:var(--soft); font-size:.92rem; }}
+.q.open .grade {{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }}
+.q button.picked {{ background:var(--primary); color:var(--on-primary); border-color:var(--primary); font-weight:600; }}
+
+/* End-of-deck questions. An answer option is a full-width row; a word marks right and wrong, not colour alone. */
+.check {{ padding:26px 28px; margin-top:28px; }}
+.check > p {{ margin:0 0 6px; color:var(--soft); max-width:70ch; font-size:.95rem; }}
+.score {{ font-family:var(--mono); font-size:.86rem; }}
+.check .q {{ border-top:1px solid var(--line); padding:22px 0 20px; margin-top:16px; }}
+.check .q .text {{ font-weight:600; margin:0 0 14px; max-width:72ch; }}
+.q .opt {{ display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:48px; height:auto; padding:10px 16px; margin:0 0 8px; border-radius:12px; text-align:left; }}
+.q .opt.right {{ border-color:var(--good); background:color-mix(in srgb, var(--good) 15%, transparent); }}
+.q .opt.wrong {{ border-color:var(--low); background:color-mix(in srgb, var(--low) 13%, transparent); }}
+.q .opt.right::after {{ content:"Correct"; color:var(--good); font-size:.8rem; font-weight:600; white-space:nowrap; }}
+.q .opt.wrong::after {{ content:"Your answer"; color:var(--low); font-size:.8rem; font-weight:600; white-space:nowrap; }}
+.q .opt:disabled {{ cursor:default; color:var(--ink); opacity:1; }}
+.q ol {{ margin:0 0 12px; padding-left:1.4em; }}
+.q .answer {{ display:none; margin:14px 0 0; padding:16px 18px; background:var(--muted); border:1px solid var(--line); border-radius:12px; max-width:78ch; }}
+.q .answer p {{ margin:0 0 10px; white-space:pre-line; }} .q .answer p:last-of-type {{ margin-bottom:0; }}
 .q.open .answer {{ display:block; }}
-.q .grade {{ display:none; margin-top:8px; }}
-.q.open .grade {{ display:block; }}
-.q .from {{ color:var(--soft); font-size:.85rem; margin-top:6px; }}
-.score {{ color:var(--soft); margin:6px 0 0; }}
-.home {{ display:inline-block; margin-bottom:12px; color:var(--accent); text-decoration:none; }}
-@media (max-width:820px) {{ .slide {{ grid-template-columns:1fr; }} }}
-</style></head><body data-course="{course}" data-deck="{title}" data-topic="{topic}"><main>
-<a class="home" href="/">&larr; Progress dashboard</a>
-<h1>{title}</h1>
-<p class="sub">{course} · {done} of {total} slides explained in plain words</p>
+.q .from {{ color:var(--soft); font-size:.86rem; margin-top:10px; }}
+
+.timer {{ position:fixed; right:16px; bottom:16px; z-index:10; background:var(--card); color:var(--ink); border:1px solid var(--line); border-radius:999px; padding:9px 15px; font:500 .84rem var(--mono); font-variant-numeric:tabular-nums; box-shadow:0 8px 24px rgba(0,0,0,.28); }}
+.timer.paused {{ opacity:.55; }}
+
+@media (max-width:860px) {{
+  main {{ padding:24px 14px 120px; }}
+  .slide {{ grid-template-columns:1fr; gap:16px; padding:16px; }}
+  .story, .check, .focus {{ padding:20px 18px; }}
+  .bar {{ padding:8px 12px; }} .bar label span {{ display:none; }}
+}}
+@media (prefers-reduced-motion: reduce) {{ * {{ transition:none !important; animation:none !important; }} html {{ scroll-behavior:auto; }} }}
+</style>
+<script>
+// Use the theme picked on the dashboard (remembered in this browser) before anything is drawn.
+try {{ var saved = localStorage.getItem('exam-study:theme'); if (saved && saved !== 'nightfall' && saved !== 'purple') document.documentElement.setAttribute('data-theme', saved); }} catch (e) {{}}
+</script></head><body data-course="{course}" data-deck="{title}" data-topic="{topic}">
+<header class="bar"><a class="home" href="/">&larr; Progress</a><span class="where">{course}, {heading}</span>
+<label><span>Theme</span><select id="theme">{theme_options}</select></label></header>
+<main>
+<div class="intro"><span class="label">{course}</span><h1>{heading}</h1>
+<p class="sub">{source}{done} of {total} slides explained in plain words</p></div>
 {story}
 {focus}
 {slides}
@@ -207,6 +259,17 @@ SCRIPT = """<script>
   window.addEventListener('pagehide', send);
   document.addEventListener('visibilitychange', function () { if (document.visibilityState !== 'visible') send(); });
   draw(true);
+
+  // The theme menu in the top bar: same themes and same remembered choice as the dashboard.
+  var menu = document.getElementById('theme');
+  if (menu) {
+    menu.value = document.documentElement.getAttribute('data-theme') || 'nightfall';
+    menu.addEventListener('change', function () {
+      if (menu.value === 'nightfall') document.documentElement.removeAttribute('data-theme');
+      else document.documentElement.setAttribute('data-theme', menu.value);
+      try { localStorage.setItem('exam-study:theme', menu.value); } catch (e) {}
+    });
+  }
 
   var toggle = document.getElementById('only-high');
   if (toggle) toggle.addEventListener('click', function () {
@@ -333,15 +396,16 @@ def build(out: Path) -> Path:
                 name = f'ask-{slide["n"]:03}-{i}.png'
                 render_question(out, name, spec, deck_path)
                 pictures += f'<img class="askimg" src="{name}" alt="Question for slide {slide["n"]}">'
-            ask = (f'<div class="q ask" data-q="slide-{slide["n"]}"><div class="num">Slide {slide["n"]} · Try it first{badge}</div>'
+            ask = (f'<div class="q ask" data-q="slide-{slide["n"]}"><div class="num">Slide {slide["n"]:02}, try it first{badge}</div>'
                    f'<div class="text">{paragraphs(note["question"])}</div>{pictures}'
                    '<button class="show">Reveal the slide and the answer</button>'
                    '<div class="grade">How did you do? <button data-outcome="right">Got it</button>'
                    '<button data-outcome="partly">Partly</button><button data-outcome="wrong">Missed it</button></div></div>')
-        blocks.append(f'<section class="slide {focus}{hidden}" id="slide-{slide["n"]}">{ask}<img loading="lazy" src="slide-{slide["n"]:03}.png" '
-                      f'alt="Slide {slide["n"]}"><div class="note"><div class="num">Slide {slide["n"]}{badge}</div>{why}{body}</div></section>')
+        blocks.append(f'<section class="slide {focus}{hidden}" id="slide-{slide["n"]}">{ask}'
+                      f'<figure class="pic"><img loading="lazy" src="slide-{slide["n"]:03}.png" alt="Slide {slide["n"]}"></figure>'
+                      f'<div class="note"><div class="num">Slide {slide["n"]:02}{badge}</div>{why}{body}</div></section>')
     # The box at the top: which slides matter most, with links to jump to them and a switch to hide the rest.
-    links = "".join(f'<a href="#slide-{n}">Slide {n}</a>' for n in high)
+    links = "".join(f'<a href="#slide-{n}">Slide {n:02}</a>' for n in high)
     focus_box = (f'<div class="focus"><h2>If you are short on time: {len(high)} of {len(slides)} slides matter most</h2>'
                  f'<div>{links}</div><button id="only-high">Show only high-focus slides</button></div>' if high else "")
     story = (f'<div class="story"><h2>The whole story in plain words</h2>{paragraphs(notes["story"])}</div>'
@@ -370,7 +434,14 @@ def build(out: Path) -> Path:
              f'what the practice exam and review material test. Tap an answer, or work the problem and then say how it '
              f'went. Your results feed the progress dashboard.</p><p class="score"></p>{questions}</div>' if questions else "")
     topic = Path(json.loads((out / "slides.json").read_text())["deck"]).parts[1]
-    page = PAGE.format(title=html.escape(out.name), course=html.escape(out.parent.name), done=len(by_slide),
+    # The heading is the display name from notes.json ("Chapter 6, Part 3 - Long-term contracts"). The folder
+    # name stays as the deck's identity, because recorded answers and study time are filed under it.
+    heading = notes.get("name") or out.name
+    source = f"{html.escape(out.name)}, " if heading != out.name else ""
+    options = "".join(f'<option value="{key}">{NAMES[key]}</option>' for key in THEMES)
+    page = PAGE.format(title=html.escape(out.name), heading=html.escape(heading), source=source,
+                       theme_css=TOKENS, theme_options=options,
+                       course=html.escape(out.parent.name), done=len(by_slide),
                        total=len(slides), story=story, focus=focus_box, slides="\n".join(blocks), check=check,
                        topic=html.escape(topic), script=SCRIPT)
     (out / "index.html").write_text(page)
