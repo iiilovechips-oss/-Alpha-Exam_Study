@@ -40,7 +40,11 @@ at `study.toml` and today's date:
 2. Read `slides.json`. For any slide whose text is empty or thin (charts, diagrams, formulas), open its
    `slide-NNN.png` and look at it before writing about it.
 3. Write `notes.json` in the same folder:
-   `{"story": "...", "slides": {"1": {"title": "...", "explain": "...", "terms": {"word": "meaning"}}}, "check": [...]}`.
+   `{"name": "...", "story": "...", "slides": {"1": {"title": "...", "explain": "...", "terms": {"word": "meaning"}}}, "check": [...]}`.
+   `name` is the display name shown on the page and the dashboard, always in the form
+   "Chapter X, Part X - what it is about" (for example "Chapter 6, Part 3 - Long-term contracts"). Number the
+   parts in lecture order within the chapter; leave "Part X" out when the chapter has one deck. The dashboard
+   sorts by the chapter and part numbers in this name.
    If `notes.json` already exists, add to it; do not rewrite slides that are already explained.
 4. Run the same command again to rebuild `index.html`. Tell the user to open it through the dashboard
    (`uv run exam-study study`, then http://127.0.0.1:8765), because answers are only recorded when the page is

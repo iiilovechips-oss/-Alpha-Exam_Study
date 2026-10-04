@@ -13,3 +13,13 @@ study.toml
 PLAN.md
 RESUME_NOTES.md
 CLAUDE.local.md
+
+# Third-party design skill (github.com/nextlevelbuilder/ui-ux-pro-max-skill, MIT); kept on this Mac only
+.claude/skills/ui-ux-pro-max/
+# Third-party design skills (github.com/leonxlnx/taste-skill, MIT); kept on this Mac only
+.claude/skills/taste-skill/
+.claude/skills/redesign-skill/
+# Third-party coding skills (github.com/jeffallan/claude-skills, MIT); kept on this Mac only
+.claude/skills/python-pro/
+.claude/skills/code-reviewer/
+.claude/skills/code-documenter/
