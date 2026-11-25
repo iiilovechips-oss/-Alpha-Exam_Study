@@ -40,14 +40,17 @@ def test_export_keeps_study_material_and_drops_graded_work(tmp_path):
          "Week 1/Reading 1.01.pdf",
          "Week 1/demo.twbx",
          "Week 1/Lecture Materials.md",
-         "Week 4/Exam 1 Study Guide.pdf")
+         "Week 4/Exam 1 Study Guide.pdf",
+         "Week 11/Chapter 9 Personality_Complete version.pdf",  # "sona" inside a word is not SONA credit
+         "Week 11/SONA credit sign-up.pdf")
     kept, dropped = choose(tmp_path)
     assert [f.name for f in kept] == [
         "Day 5 LECTURE Case 1 & ABC Basics.pdf",
         "badm210_01_excel_basics_DATA.xlsx",
+        "Chapter 9 Personality_Complete version.pdf",
         "Exam 1 Study Guide.pdf",
     ]
-    assert len(dropped) == 6
+    assert len(dropped) == 7
 
 
 def test_export_prefers_the_fuller_version_within_a_folder(tmp_path):

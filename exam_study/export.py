@@ -21,7 +21,7 @@ ALLOWED_EXT = {".pdf", ".pptx", ".docx", ".xlsx", ".txt"}
 # Always left out: graded work, admin paperwork, per-student lab files.
 NEVER = re.compile(
     r"netid|playbook|template|response sheet|rubric|instructions|secnumber|"
-    r"group assignment|extra credit|sona|research participation|student success|"
+    r"group assignment|extra credit|\bsona\b|research participation|student success|"  # \b: not "Personality"
     r"^reading[ _]\d+\.\d+", re.I)  # BADM 210 weekly readings: the full textbook is included instead
 # Study material: kept even if it also looks like case work.
 KEEP = re.compile(
